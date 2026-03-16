@@ -223,279 +223,163 @@
           (get("mouthPressLeft") + get("mouthPressRight")) / 2;
         const eyeSquint =
           (get("eyeSquintLeft") + get("eyeSquintRight")) / 2;
-        const eyeSquintLeft = get("eyeSquintLeft");
-        const eyeSquintRight = get("eyeSquintRight");
         const eyeBlinkLeft = get("eyeBlinkLeft");
         const eyeBlinkRight = get("eyeBlinkRight");
         const mouthPucker = get("mouthPucker");
         const eyeLookDown =
           (get("eyeLookDownLeft") + get("eyeLookDownRight")) / 2;
-        const eyeLookUp =
-          (get("eyeLookUpLeft") + get("eyeLookUpRight")) / 2;
-        const eyebrowOuterUp =
-          (get("browOuterUpLeft") + get("browOuterUpRight")) / 2;
 
-        // Approximate head tilt and nod from landmarks to get pose-based auras
+        // Head tilt for tilted‑head aura
         let headTilt = 0;
-        let headNod = 0;
         if (landmarks && landmarks.length > 0) {
-          // Use left/right eye outer corners and nose tip
-          const leftEyeOuter = landmarks[33]; // approx index
-          const rightEyeOuter = landmarks[263]; // approx index
-          const noseTip = landmarks[1]; // approx index
-          if (leftEyeOuter && rightEyeOuter && noseTip) {
+          const leftEyeOuter = landmarks[33];
+          const rightEyeOuter = landmarks[263];
+          if (leftEyeOuter && rightEyeOuter) {
             const dx = rightEyeOuter.x - leftEyeOuter.x;
             const dy = rightEyeOuter.y - leftEyeOuter.y;
-            headTilt = Math.atan2(dy, dx); // roll
-            headNod = noseTip.y - (leftEyeOuter.y + rightEyeOuter.y) / 2; // positive = looking down
+            headTilt = Math.atan2(dy, dx);
           }
         }
 
-        // Collect possible aura candidates so tiny changes can switch between them
-        const candidates = [];
+        // Overall activity = how "alive" the face is
+        const activity =
+          (Math.abs(smile) +
+            Math.abs(cheek) +
+            Math.abs(browUp) +
+            Math.abs(browDown) +
+            Math.abs(eyeWide) +
+            Math.abs(jawOpen) +
+            Math.abs(mouthPress) +
+            Math.abs(eyeSquint)) /
+          8;
 
-        // Wink Moonlit Witch has absolute top priority:
-        // if we detect a wink (one eye more closed than the other), always pick Witch.
-        // Magical Girl (open-mouth smile) will NOT override a wink.
+        // Wink info (for Witch vs Fox)
         const blinkDiffLR = eyeBlinkLeft - eyeBlinkRight;
         const blinkDiffRL = eyeBlinkRight - eyeBlinkLeft;
-        const leftWink = blinkDiffLR > 0.02;
-        const rightWink = blinkDiffRL > 0.02;
-        if (leftWink || rightWink) {
-          const conf =
-            (Math.abs(blinkDiffLR) + Math.abs(blinkDiffRL) + Math.max(smile, 0.01)) /
-              2.5 +
-            0.4;
-          return {
-            name: "Moonlit Witch Aura 🌙",
-            color: "#a855f7",
-            confidence: conf,
-          };
-        }
+        const winkOneSide = Math.abs(blinkDiffLR) > 0.1 || Math.abs(blinkDiffRL) > 0.1;
+        const bothEyesClosed = eyeBlinkLeft > 0.4 && eyeBlinkRight > 0.4;
+        const anyWink = winkOneSide || bothEyesClosed;
 
-        // Magical Girl has next priority: any clear open-mouth smile goes here
-        if (smile > 0.18 && jawOpen > 0.18) {
-          const conf = (smile + jawOpen) / 2;
-          return {
-            name: "Magical Girl Aura ✨",
-            color: "#f472b6",
-            confidence: conf,
-          };
-        }
-
-        // Moonlit Witch (gentle smile + slightly soft eyes, no wink)
-        // Make this *very* easy: any tiny smile or eye softening prefers Witch.
-        if (smile > 0.02 || eyeSquint > 0.01) {
-          const conf = (smile * 0.7 + eyeSquint * 0.3) + 0.2;
-          candidates.push({
-            name: "Moonlit Witch Aura 🌙",
-            color: "#a855f7",
-            confidence: conf,
-          });
-        }
-
-        // Candy Coven (bright but slightly softer smile, cheeks up)
-        if (smile > 0.12 && cheek > 0.10 && jawOpen < 0.15) {
-          const conf = (smile + cheek) / 2;
-          candidates.push({
-            name: "Candy Coven Aura 🍬",
-            color: "#fb7185",
-            confidence: conf,
-          });
-        }
-
-        // Shadow Fox (slightly narrowed, downward eyes + small smile)
-        // Make it very easy: tiny downcast + tiny squint + small smile.
-        if (eyeLookDown > 0.01 && eyeSquint > 0.01 && smile > 0.02) {
-          const conf = (eyeSquint + eyeLookDown + smile) / 3 + 0.2;
-          candidates.push({
-            name: "Shadow Fox Aura 🦊",
-            color: "#f97316",
-            confidence: conf,
-          });
-        }
-
-        // Starstruck Oracle (wide eyes + raised brows)
-        if (eyeWide > 0.10 && browUp > 0.08) {
-          const conf = (eyeWide + browUp) / 2;
-          candidates.push({
-            name: "Starstruck Oracle Aura 🔮",
-            color: "turquoise",
-            confidence: conf,
-          });
-        }
-
-        // Celestial Messenger (outer brows lifted, eyes up)
-        if (eyebrowOuterUp > 0.08 && (eyeLookUp > 0.06 || eyeWide > 0.12)) {
-          const conf = (eyebrowOuterUp + eyeLookUp + eyeWide) / 3;
-          candidates.push({
-            name: "Celestial Messenger Aura 🕊️",
-            color: "#f9a8d4",
-            confidence: conf,
-          });
-        }
-
-        // Dream Seer (relaxed, eyes up / wide but mouth neutral)
-        if ((eyeWide > 0.10 || eyeLookUp > 0.08) && smile < 0.3 && mouthPress < 0.3) {
-          const conf = (eyeWide + eyeLookUp + (1 - smile)) / 3;
-          candidates.push({
-            name: "Dream Seer Aura ✨",
-            color: "#38bdf8",
-            confidence: conf,
-          });
-        }
-
-        // Storm Dragon (brows down + tight mouth + jaw)
-        if (browDown > 0.10 && (mouthPress > 0.12 || jawOpen > 0.12)) {
-          const conf =
-            (browDown + Math.max(mouthPress, jawOpen)) / 2;
-          candidates.push({
-            name: "Storm Dragon Aura 🐉",
-            color: "#4fd1ff",
-            confidence: conf,
-          });
-        }
-
-        // Clockwork Alchemist (pursed lips / thinking)
-        // Keep this as a more "extreme" tag so it appears less often
-        if (mouthPucker > 0.45 || mouthPress > 0.48) {
-          const conf = Math.max(mouthPucker, mouthPress);
-          candidates.push({
-            name: "Clockwork Alchemist Aura ⚙️",
-            color: "#eab308",
-            confidence: conf,
-          });
-        }
-
-        // Twilight Familiar (eyes soft, small smile, slight brow down / downcast gaze)
-        if (
-          eyeSquint > 0.03 &&
-          smile > 0.05 &&
-          (browDown > 0.04 || eyeLookDown > 0.04)
-        ) {
-          const conf = (eyeSquint + smile + browDown) / 3;
-          candidates.push({
-            name: "Twilight Familiar Aura 🐈‍⬛",
-            color: "#6366f1",
-            confidence: conf,
-          });
-        }
-
-        // Lilith's Tilt (noticeable head tilt left/right)
-        if (Math.abs(headTilt) > 0.18) {
-          const conf = Math.min(1, Math.abs(headTilt) * 2);
-          candidates.push({
-            name: "Lilith's Tilt Aura 🕯️",
-            color: "#f97373",
-            confidence: conf,
-          });
-        }
-
-        // Crescent Seer (slight head tilt + soft smile)
-        if (Math.abs(headTilt) > 0.1 && smile > 0.18 && eyeSquint > 0.12) {
-          const conf = (Math.abs(headTilt) + smile + eyeSquint) / 3;
-          candidates.push({
-            name: "Crescent Seer Aura 🌘",
-            color: "#facc15",
-            confidence: conf,
-          });
-        }
-
-        // Graveyard Whisper (head slightly down + eyes up)
-        if (headNod > 0.03 && eyeLookUp > 0.16) {
-          const conf = (headNod + eyeLookUp) / 2;
-          candidates.push({
-            name: "Graveyard Whisper Aura 🕯️",
-            color: "#22c55e",
-            confidence: conf,
-          });
-        }
-
-        // Forest Spirit (mostly neutral / relaxed, *very* little movement)
-        const activity =
-          (smile +
-            cheek +
-            browUp +
-            Math.abs(browDown) +
-            eyeWide +
-            jawOpen +
-            mouthPress +
-            eyeSquint) /
-          8;
-        // Only treat as Ancient Forest when face is *almost perfectly* still
-        if (activity < 0.03) {
-          const conf = 1 - activity;
-          candidates.push({
-            name: "Ancient Forest Spirit Aura 🌿",
-            color: "#9ae6b4",
-            confidence: conf,
-          });
-        }
-
-        if (candidates.length === 0) {
-          // Fallback – mysterious NPC, but keep confidence modest
-          const maxScore = Math.max(
-            smile,
-            cheek,
-            browUp,
-            browDown,
-            eyeWide,
-            jawOpen,
-            mouthPress,
-            eyeSquint,
-            mouthPucker
-          );
+        // 1) Mysterious NPC – still face with no expression
+        if (activity < 0.01 && smile < 0.02) {
           return {
             name: "Mysterious NPC Aura 👁",
             color: "orange",
-            confidence: maxScore * 0.7,
+            confidence: 1 - activity,
           };
         }
 
-        // If Witch or Fox are present as candidates, strongly prefer them
-        const witchLike = candidates.find((c) =>
-          c.name.includes("Witch")
-        );
-        const foxLike = candidates.find((c) =>
-          c.name.includes("Fox")
-        );
-        if (witchLike || foxLike) {
-          const pick = witchLike || foxLike;
+        // 2) Ancient Forest – subtle soft smile (no wink)
+        if (
+          !anyWink &&
+          smile >= 0.02 &&
+          smile < 0.08
+        ) {
+          const conf = (smile + (1 - Math.abs(browDown)) + (1 - activity)) / 3;
           return {
-            ...pick,
-            confidence: (pick.confidence || 0) + 0.3,
+            name: "Ancient Forest Spirit Aura 🌿",
+            color: "#9ae6b4",
+            confidence: Math.min(1, conf),
           };
         }
 
-        // Slight randomness among remaining candidates so tiny movements create variety.
-        // Make the band wide so many different tags can win.
-        const topConf = Math.max(...candidates.map((c) => c.confidence || 0));
-        const close = candidates.filter(
-          (c) => (c.confidence || 0) >= topConf - 0.25
-        );
-        const choice = close[Math.floor(Math.random() * close.length)];
-        return choice;
+        // 3) Ancient Alchemist – dull face: low expression, mouth not smiling
+        if (
+          activity >= 0.06 &&
+          activity < 0.2 &&
+          smile < 0.08 &&
+          !anyWink
+        ) {
+          const dullMouth = Math.max(mouthPucker, mouthPress, eyeLookDown);
+          const conf = (activity + dullMouth + Math.abs(browDown)) / 3;
+          return {
+            name: "Ancient Alchemist Aura ⚙️",
+            color: "#eab308",
+            confidence: Math.min(1, conf),
+          };
+        }
+
+        // 4) Witch – *very* slight smile with wink (one or both eyes)
+        if (anyWink && smile >= 0.02) {
+          const conf =
+            (smile + eyeSquint + Math.abs(blinkDiffLR) + Math.abs(blinkDiffRL)) /
+              4 +
+            0.3;
+          return {
+            name: "Moonlit Witch Aura 🌙",
+            color: "#a855f7",
+            confidence: Math.min(1, conf),
+          };
+        }
+
+        // 5) Tilted head – Lilith tilt aura (head slightly tilted)
+        if (Math.abs(headTilt) > 0.12) {
+          const conf = Math.min(1, Math.abs(headTilt) * 2 + activity);
+          return {
+            name: "Lilith's Tilt Aura 🕯️",
+            color: "#f97373",
+            confidence: conf,
+          };
+        }
+
+        // 6) Magical Girl – happy face: any clear smile (especially if mouth open)
+        if (smile >= 0.15) {
+          const conf = (smile + jawOpen + cheek) / 3 + 0.2;
+          return {
+            name: "Magical Girl Aura ✨",
+            color: "#f472b6",
+            confidence: Math.min(1, conf),
+          };
+        }
+
+        // 7) Fox – almost the same as Witch: slight smile + "squinty" mischievous eyes, but NO wink
+        // Witch: anyWink || smile >= 0.08
+        // Fox: no wink, slightly smaller smile, more emphasis on eyeSquint / browDown
+        if (!anyWink && smile >= 0.03) {
+          const conf =
+            (smile * 0.6 + eyeSquint * 1.2 + Math.abs(browDown) * 0.8) / 2.6 +
+            0.25;
+          return {
+            name: "Shadow Fox Aura 🦊",
+            color: "#f97316",
+            confidence: Math.min(1, conf),
+          };
+        }
+
+        // 8) Fallback – NPC‑like if nothing else matches
+        return {
+          name: "Mysterious NPC Aura 👁",
+          color: "orange",
+          confidence: Math.min(1, activity + 0.2),
+        };
       }
 
-      // Aura smoothing state
+      // Aura smoothing state (keep short-term smoothing so fluctuations look nice)
       let smoothedAura = null;
       let currentAura = null;
       let auraHoldFrames = 0;
-      const SMOOTH_ALPHA = 0.6; // more reactive so small changes show up
-      const MIN_HOLD_FRAMES = 3; // switch allowed after very few frames
-      const SWITCH_THRESHOLD = 0.03; // tiny edge is enough to switch
+      const SMOOTH_ALPHA = 0.6;
+      const MIN_HOLD_FRAMES = 2;
+      const SWITCH_THRESHOLD = 0.02;
 
-      // Manual capture / finalization state
+      // Auto finalization over first 5s
       let finalizedAura = null;
-      let auraCaptured = false;
+      let auraHistory = []; // { name, color, confidence, t }
+      let historyStartTime = null;
 
-      function captureScreenshotWithAura() {
+      function captureScreenshotWithAura(displayAura) {
         if (!window.html2canvas) {
           console.warn("html2canvas not loaded; cannot capture full-page screenshot.");
           return;
         }
 
-        // Capture the whole visible page including background image and UI
+        // Temporarily set label text to final aura before capture
+        const prevText = label.innerText;
+        if (displayAura) {
+          const conf = Math.round((displayAura.confidence || 0) * 100);
+          label.innerText = `Final aura: ${displayAura.name} (${conf}%)`;
+        }
+
         window.html2canvas(document.body, {
           useCORS: true,
           backgroundColor: null,
@@ -514,6 +398,9 @@
           const ts = new Date().toISOString().replace(/[:.]/g, "-");
           link.download = `aurabox-${ts}.png`;
           link.click();
+
+          // Restore previous label text
+          label.innerText = prevText;
         });
       }
 
@@ -608,20 +495,22 @@
           }
         );
 
-        // When the user clicks "Capture aura", freeze the current aura and save a screenshot
+        // When the user clicks "Capture aura", save a screenshot of the final aura
         captureButton.addEventListener("click", () => {
-          if (currentAura) {
-            finalizedAura = { ...currentAura };
-            auraCaptured = true;
-            captureScreenshotWithAura();
+          const auraForShot = finalizedAura || currentAura;
+          if (auraForShot) {
+            captureScreenshotWithAura(auraForShot);
           }
         });
 
-        // Reset button: clear captured aura and resume live scanning
+        // Reset button: clear all aura state and history, resume live scanning
         resetButton.addEventListener("click", () => {
           finalizedAura = null;
-          auraCaptured = false;
-          label.innerText = "Scanning aura...";
+          smoothedAura = null;
+          currentAura = null;
+          auraHistory = [];
+          historyStartTime = null;
+          label.innerText = "Scanning aura: ... (0%)";
         });
 
         async function detect() {
@@ -671,18 +560,68 @@
               }
             }
 
+            // Build history over first 5 seconds to pick a final aura
+            const now = performance.now();
+            if (!historyStartTime) {
+              historyStartTime = now;
+            }
+            if (!finalizedAura) {
+              auraHistory.push({
+                name: currentAura.name,
+                color: currentAura.color,
+                confidence: currentAura.confidence,
+                t: now,
+              });
+              // Keep only last 5s of history
+              const windowMs = 5000;
+              auraHistory = auraHistory.filter((item) => now - item.t <= windowMs);
+
+              // After 5s from start, choose the most frequent aura name
+              if (now - historyStartTime >= windowMs && auraHistory.length > 0) {
+                const counts = {};
+                const bestSampleByName = {};
+                for (const item of auraHistory) {
+                  counts[item.name] = (counts[item.name] || 0) + 1;
+                  if (
+                    !bestSampleByName[item.name] ||
+                    (item.confidence || 0) >
+                      (bestSampleByName[item.name].confidence || 0)
+                  ) {
+                    bestSampleByName[item.name] = item;
+                  }
+                }
+                let bestName = null;
+                let bestCount = -1;
+                for (const name in counts) {
+                  if (counts[name] > bestCount) {
+                    bestCount = counts[name];
+                    bestName = name;
+                  }
+                }
+                if (bestName) {
+                  const pick = bestSampleByName[bestName];
+                  finalizedAura = {
+                    name: pick.name,
+                    color: pick.color,
+                    confidence: pick.confidence,
+                  };
+                }
+              }
+            }
+
             const displayAura = finalizedAura || currentAura || aura;
             drawAuraFromLandmarks(landmarks, displayAura);
             const conf = Math.round((displayAura.confidence || 0) * 100);
             label.innerText = finalizedAura
-              ? `Captured aura: ${displayAura.name} (${conf}%)`
+              ? `Final aura: ${displayAura.name} (${conf}%)`
               : `Scanning aura: ${displayAura.name} (${conf}%)`;
           } else {
             // No face: reset state so new session can pick a fresh aura
             smoothedAura = null;
             currentAura = null;
             finalizedAura = null;
-            auraCaptured = false;
+            auraHistory = [];
+            historyStartTime = null;
             label.innerText = "Looking for your aura...";
           }
 
