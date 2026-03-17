@@ -56,6 +56,10 @@
         top: 0;
         left: 0;
       }
+
+      video {
+        transform-origin: center center;
+      }
       #auraLabel {
         margin-top: 20px;
         font-size: 26px;
@@ -113,6 +117,37 @@
           0 0 16px rgba(56, 189, 248, 0.4);
       }
 
+      #filterSelect {
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        background: rgba(5, 5, 20, 0.9);
+        color: #fef9ff;
+        font-family: inherit;
+        font-size: 14px;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        outline: none;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+      }
+
+      #filterSelect:hover {
+        border-color: rgba(255, 123, 255, 0.6);
+        box-shadow: 0 0 12px rgba(255, 123, 255, 0.3);
+      }
+
+      #filterSelect option {
+        background: #1a1a2e;
+        color: #fef9ff;
+      }
+
+      .filter-label {
+        font-size: 14px;
+        letter-spacing: 0.06em;
+        opacity: 0.9;
+        margin-right: 4px;
+      }
+
       h1 {
         margin: 0;
         padding: 6px 18px 12px;
@@ -164,6 +199,35 @@
 
     <div id="auraLabel">Initializing aura scan...</div>
     <div id="controls">
+      <span class="filter-label">Filter</span>
+      <select id="filterSelect">
+        <option value="none">None</option>
+        <option value="soft">Soft glow</option>
+        <option value="warm">Warm</option>
+        <option value="cool">Cool</option>
+        <option value="vintage">Vintage</option>
+        <option value="nostalgic">CCD effect</option>
+        <option value="dreamy">Dreamy</option>
+      </select>
+
+      <span class="filter-label">Face</span>
+      <select id="slimSelect">
+        <option value="normal">Normal</option>
+        <option value="slim">Slim face</option>
+      </select>
+
+      <span class="filter-label">View</span>
+      <select id="viewSelect">
+        <option value="normal">Normal</option>
+        <option value="mirror">Mirror</option>
+      </select>
+
+      <span class="filter-label">Frames</span>
+      <select id="frameSelect">
+        <option value="none">None</option>
+        <option value="cookieland">Cookieland tempura cloud</option>
+      </select>
+
       <button id="captureButton">Capture aura</button>
       <button id="resetButton">Reset</button>
     </div>
@@ -176,11 +240,88 @@
 
       const video = document.getElementById("video");
       const canvas = document.getElementById("overlay");
+      const container = document.getElementById("container");
       const ctx = canvas.getContext("2d");
       const label = document.getElementById("auraLabel");
       const captureButton = document.getElementById("captureButton");
       const resetButton = document.getElementById("resetButton");
+      const filterSelect = document.getElementById("filterSelect");
+      const slimSelect = document.getElementById("slimSelect");
+      const viewSelect = document.getElementById("viewSelect");
+      const frameSelect = document.getElementById("frameSelect");
       const downloadLinkId = "aura-download-link";
+
+      // Base beautify filter (always on: subtle "whitening" + smoothing)
+      // Higher brightness + slightly reduced saturation gives a gentle skin‑brightening effect.
+      const BASE_VIDEO_FILTER =
+        "brightness(1.06) contrast(1.03) saturate(0.96) blur(0.5px)";
+
+      // Frame overlay sources (relative URLs so they work from the server)
+      const FRAME_SOURCES = {
+        cookieland: "cookieland_tempura_cloud.png",
+      };
+      const frameImages = {};
+
+      for (const [key, src] of Object.entries(FRAME_SOURCES)) {
+        const img = new Image();
+        img.src = src;
+        img.crossOrigin = "anonymous";
+        frameImages[key] = img;
+      }
+
+      // User-adjustable frame offset (so they can move stickers around)
+      let frameOffsetX = 0;
+      let frameOffsetY = 0;
+
+      // Current face slimming state (affects video transform only)
+      let faceSlimScaleX = 1;
+      // Current mirror view state
+      let isMirrorView = false;
+
+      // Web-friendly video filters (CSS filter applied on top of base filter)
+      const VIDEO_FILTERS = {
+        none: "",
+        soft: "brightness(1.08) contrast(1.02) saturate(1.12)",
+        warm: "sepia(0.15) brightness(1.05) saturate(1.15)",
+        cool: "hue-rotate(-8deg) brightness(1.04) saturate(1.08)",
+        vintage: "sepia(0.3) contrast(1.08) brightness(0.98)",
+        // Nostalgic: subtle cool tone + tiny pink, with stronger soft blur
+        nostalgic:
+          "brightness(1.03) contrast(1.01) saturate(1.02) hue-rotate(-8deg) blur(0.9px)",
+        // Dreamy: same tone as cool, with separate snow/sparkle overlay
+        dreamy: "hue-rotate(-8deg) brightness(1.04) saturate(1.08) blur(0.2px)",
+      };
+
+      function applyVideoFilter() {
+        const key = filterSelect.value || "none";
+        const extra = VIDEO_FILTERS[key] || VIDEO_FILTERS.none;
+        video.style.filter = `${BASE_VIDEO_FILTER} ${extra}`.trim();
+      }
+
+      function updateVideoTransform() {
+        const mirrorFactor = isMirrorView ? -1 : 1;
+        const scaleX = faceSlimScaleX * mirrorFactor;
+        video.style.transform = `scaleX(${scaleX})`;
+      }
+
+      function applyFaceSlimming() {
+        const mode = slimSelect.value || "normal";
+        faceSlimScaleX = mode === "slim" ? 0.93 : 1;
+        updateVideoTransform();
+      }
+
+      function applyViewMode() {
+        const mode = viewSelect.value || "normal";
+        isMirrorView = mode === "mirror";
+        updateVideoTransform();
+      }
+
+      filterSelect.addEventListener("change", applyVideoFilter);
+      slimSelect.addEventListener("change", applyFaceSlimming);
+      viewSelect.addEventListener("change", applyViewMode);
+      applyVideoFilter(); // apply initial selection
+      applyFaceSlimming(); // apply initial slimming state
+      applyViewMode(); // apply initial view mode
 
       async function setupCamera() {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -367,6 +508,9 @@
       let auraHistory = []; // { name, color, confidence, t }
       let historyStartTime = null;
 
+      // Precomputed dreamy sparkles (so they appear static, starry)
+      let dreamySparkles = null; // [{ x, y, radius }, ...]
+
       function captureScreenshotWithAura(displayAura) {
         if (!window.html2canvas) {
           console.warn("html2canvas not loaded; cannot capture full-page screenshot.");
@@ -405,6 +549,12 @@
       }
 
       function drawAuraFromLandmarks(landmarks, aura) {
+        ctx.save();
+        if (isMirrorView) {
+          // Mirror all aura drawings horizontally so they line up with mirrored video.
+          ctx.translate(canvas.width, 0);
+          ctx.scale(-1, 1);
+        }
         let minX = Infinity,
           minY = Infinity,
           maxX = -Infinity,
@@ -473,6 +623,95 @@
         const textX = Math.max(0, x);
         const textY = Math.max(20, y - 10);
         ctx.fillText(labelText, textX, textY);
+
+        // Nostalgic vignette / bloom overlay (mostly cool, almost no tint)
+        if (filterSelect.value === "nostalgic") {
+          const grad = ctx.createRadialGradient(
+            canvas.width / 2,
+            canvas.height / 2,
+            0,
+            canvas.width / 2,
+            canvas.height / 2,
+            Math.max(canvas.width, canvas.height) * 0.75
+          );
+          // Very light cool vignette with a hint of pink in the center
+          grad.addColorStop(0, "rgba(245, 215, 235, 0.02)"); // almost neutral with a touch of pink
+          grad.addColorStop(0.45, "rgba(190, 210, 255, 0.025)"); // soft cool tone
+          grad.addColorStop(1, "rgba(20, 30, 60, 0.06)"); // gentle cool dark edge
+
+          ctx.fillStyle = grad;
+          ctx.globalCompositeOperation = "soft-light";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.globalCompositeOperation = "source-over";
+        }
+
+        // Dreamy sparkle overlay (very soft, whole-screen, static positions)
+        if (filterSelect.value === "dreamy") {
+          if (!dreamySparkles) {
+            const sparkleCount = 22;
+            const maxRadius = Math.min(canvas.width, canvas.height) * 0.035;
+            dreamySparkles = Array.from({ length: sparkleCount }, () => ({
+              x: Math.random() * canvas.width,
+              y: Math.random() * canvas.height,
+              radius: 1.2 + Math.random() * maxRadius,
+            }));
+          }
+
+          for (const { x: sx, y: sy, radius } of dreamySparkles) {
+
+            const gradient = ctx.createRadialGradient(
+              sx,
+              sy,
+              0,
+              sx,
+              sy,
+              radius
+            );
+            gradient.addColorStop(0, "rgba(255, 255, 255, 0.28)");
+            gradient.addColorStop(0.3, "rgba(220, 235, 255, 0.16)");
+            gradient.addColorStop(1, "rgba(190, 210, 255, 0)");
+
+            ctx.fillStyle = gradient;
+            ctx.globalAlpha = 0.9;
+            ctx.beginPath();
+            ctx.arc(sx, sy, radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+          }
+        }
+        ctx.restore();
+      }
+
+      function drawFrameOverlay() {
+        const frameKey = frameSelect.value || "none";
+        if (frameKey === "none") return;
+        const img = frameImages[frameKey];
+        if (!img || !img.complete) return;
+
+        // Draw the frame at its original aspect ratio,
+        // scaled to COVER the canvas (no stretching, may crop),
+        // and aligned so the sticker content sits near the bottom.
+        const imgW = img.naturalWidth || img.width;
+        const imgH = img.naturalHeight || img.height;
+        if (!imgW || !imgH) return;
+
+        // Use "cover" style scaling so it fills the frame without distortion.
+        const scale = Math.max(canvas.width / imgW, canvas.height / imgH);
+        const drawW = imgW * scale;
+        const drawH = imgH * scale;
+
+        // Center horizontally and allow a user-controlled offset
+        // so they can move the sticker artwork around.
+        const dx = (canvas.width - drawW) / 2;
+        const dy = (canvas.height - drawH) / 2;
+
+        ctx.drawImage(
+          img,
+          dx + frameOffsetX,
+          dy + frameOffsetY,
+          drawW,
+          drawH
+        );
       }
 
       async function init() {
@@ -494,6 +733,35 @@
             numFaces: 1,
           }
         );
+
+        // Allow users to drag the frame/stickers around on the video area
+        let isDraggingFrame = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let initialOffsetX = 0;
+        let initialOffsetY = 0;
+
+        canvas.addEventListener("mousedown", (e) => {
+          if (!frameSelect || frameSelect.value === "none") return;
+          isDraggingFrame = true;
+          dragStartX = e.offsetX;
+          dragStartY = e.offsetY;
+          initialOffsetX = frameOffsetX;
+          initialOffsetY = frameOffsetY;
+        });
+
+        window.addEventListener("mousemove", (e) => {
+          if (!isDraggingFrame) return;
+          const rect = canvas.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          frameOffsetX = initialOffsetX + (x - dragStartX);
+          frameOffsetY = initialOffsetY + (y - dragStartY);
+        });
+
+        window.addEventListener("mouseup", () => {
+          isDraggingFrame = false;
+        });
 
         // When the user clicks "Capture aura", save a screenshot of the final aura
         captureButton.addEventListener("click", () => {
@@ -624,6 +892,9 @@
             historyStartTime = null;
             label.innerText = "Looking for your aura...";
           }
+
+          // Draw any selected frame overlay last so it sits on top
+          drawFrameOverlay();
 
           requestAnimationFrame(detect);
         }
