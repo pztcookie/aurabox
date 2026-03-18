@@ -529,19 +529,18 @@
           return;
         }
 
-        // If the user is in Mirror view, html2canvas can sometimes capture the <video>
-        // unmirrored depending on browser. For mirror mode, we composite manually so the
-        // saved image matches EXACTLY what’s shown in the camera frame (mirror + filters + slim + overlay + frame).
-        if (isMirrorView) {
-          captureCameraSceneWithAura(displayAura);
-          return;
-        }
-
         // Temporarily set label text to final aura before capture
         const prevText = label.innerText;
         if (displayAura) {
           const conf = Math.round((displayAura.confidence || 0) * 100);
           label.innerText = `Final aura: ${displayAura.name} (${conf}%)`;
+        }
+
+        // Mirror view: html2canvas may capture <video> unmirrored/blank.
+        // Workaround: temporarily replace the <video> with an <img> snapshot of EXACTLY what’s displayed.
+        let restoreMirror = null;
+        if (isMirrorView) {
+          restoreMirror = injectVideoSnapshotForHtml2Canvas();
         }
 
         window.html2canvas(document.body, {
@@ -565,11 +564,17 @@
 
           // Restore previous label text
           label.innerText = prevText;
+          if (restoreMirror) restoreMirror();
+        }).catch((err) => {
+          console.warn("Capture failed:", err);
+          label.innerText = prevText;
+          if (restoreMirror) restoreMirror();
         });
       }
 
-      function captureCameraSceneWithAura(displayAura) {
-        // Render: video (with current CSS filter + slim + mirror) + overlay canvas + frame overlay
+      function renderDisplayedVideoFrameDataUrl() {
+        // Render JUST the displayed video frame (mirror + slim + filter).
+        // Overlay (canvas/frame/VFX) and background are captured by html2canvas separately.
         const out = document.createElement("canvas");
         out.width = canvas.width;
         out.height = canvas.height;
@@ -593,44 +598,34 @@
         octx.drawImage(video, 0, 0, w, h);
         octx.restore();
 
-        // Reset filter so it doesn't apply to overlays
-        octx.filter = "none";
+        return out.toDataURL("image/png");
+      }
 
-        // Overlay already contains the latest mirrored aura drawings/VFX (we draw mirrored into the canvas)
-        octx.drawImage(canvas, 0, 0);
+      function injectVideoSnapshotForHtml2Canvas() {
+        const dataUrl = renderDisplayedVideoFrameDataUrl();
 
-        // Draw selected frame overlay last (same as on-screen)
-        const frameKey = frameSelect.value || "none";
-        if (frameKey !== "none") {
-          const img = frameImages[frameKey];
-          if (img && img.complete) {
-            const imgW = img.naturalWidth || img.width;
-            const imgH = img.naturalHeight || img.height;
-            if (imgW && imgH) {
-              const scale = Math.max(w / imgW, h / imgH);
-              const drawW = imgW * scale;
-              const drawH = imgH * scale;
-              const dx = (w - drawW) / 2;
-              const dy = (h - drawH) / 2;
-              octx.drawImage(img, dx + frameOffsetX, dy + frameOffsetY, drawW, drawH);
-            }
-          }
-        }
+        // Create snapshot <img> positioned exactly over the <video>
+        const img = document.createElement("img");
+        img.src = dataUrl;
+        img.alt = "video-snapshot";
+        img.style.position = "absolute";
+        img.style.top = "0";
+        img.style.left = "0";
+        img.style.width = `${video.width || canvas.width}px`;
+        img.style.height = `${video.height || canvas.height}px`;
+        img.style.objectFit = "cover";
+        img.style.borderRadius = getComputedStyle(video).borderRadius || "0";
+        img.style.zIndex = "0"; // behind overlay canvas
 
-        // Download PNG
-        const dataUrl = out.toDataURL("image/png");
-        let link = document.getElementById(downloadLinkId);
-        if (!link) {
-          link = document.createElement("a");
-          link.id = downloadLinkId;
-          link.style.display = "none";
-          document.body.appendChild(link);
-        }
-        link.href = dataUrl;
-        const ts = new Date().toISOString().replace(/[:.]/g, "-");
-        const suffix = displayAura?.name ? displayAura.name.replace(/[^\w]+/g, "_") : "aura";
-        link.download = `aurabox-mirror-${suffix}-${ts}.png`;
-        link.click();
+        // Put snapshot right where the video is
+        const prevVisibility = video.style.visibility;
+        video.style.visibility = "hidden";
+        container.insertBefore(img, canvas);
+
+        return () => {
+          img.remove();
+          video.style.visibility = prevVisibility;
+        };
       }
 
       function drawAuraFromLandmarks(landmarks, aura) {
