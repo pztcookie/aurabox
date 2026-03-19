@@ -83,6 +83,7 @@
         gap: 12px;
         justify-content: center;
         align-items: center;
+        flex-wrap: wrap;
       }
 
       #captureButton {
@@ -146,6 +147,69 @@
         letter-spacing: 0.06em;
         opacity: 0.9;
         margin-right: 4px;
+      }
+
+      #musicControls {
+        margin-top: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      }
+
+      #musicToggleButton {
+        padding: 9px 18px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        background: radial-gradient(circle at top left, rgba(255, 190, 240, 0.35), transparent),
+          rgba(45, 14, 45, 0.9);
+        color: #fff6fd;
+        font-family: inherit;
+        font-size: 15px;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        box-shadow:
+          0 0 12px rgba(255, 140, 220, 0.45),
+          0 0 24px rgba(126, 97, 255, 0.3);
+        transition: transform 0.1s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+      }
+
+      #musicToggleButton:hover {
+        transform: translateY(-1px);
+        box-shadow:
+          0 0 14px rgba(255, 160, 230, 0.6),
+          0 0 30px rgba(126, 97, 255, 0.45);
+      }
+
+      #musicToggleButton:active {
+        transform: translateY(1px) scale(0.98);
+      }
+
+      #musicToggleButton.is-playing {
+        background: radial-gradient(circle at top left, rgba(170, 255, 210, 0.35), transparent),
+          rgba(16, 54, 40, 0.9);
+        box-shadow:
+          0 0 14px rgba(90, 255, 180, 0.5),
+          0 0 26px rgba(80, 200, 255, 0.35);
+      }
+
+      #audioSelect {
+        min-width: 260px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        background: rgba(6, 10, 28, 0.92);
+        color: #fef9ff;
+        font-family: inherit;
+        font-size: 14px;
+        letter-spacing: 0.03em;
+        cursor: pointer;
+        outline: none;
+        box-shadow: 0 0 10px rgba(127, 240, 255, 0.28);
+      }
+
+      #audioSelect:hover {
+        border-color: rgba(127, 240, 255, 0.72);
       }
 
       h1 {
@@ -237,6 +301,13 @@
       <button id="captureButton">Capture aura</button>
       <button id="resetButton">Reset</button>
     </div>
+    <div id="musicControls">
+      <button id="musicToggleButton">🎵 Play Aura Song</button>
+      <select id="audioSelect" aria-label="Choose aura music">
+        <option value="adore_famous.mp3">Famous -- adore</option>
+        <option value="breathe_u_in.mp3">Breathe u in -- adore</option>
+        <option value="dancing_while_the_world_burns.mp3">Dancing while the world burns -- adore</option>      </select>
+    </div>
 
     <script type="module">
       import {
@@ -255,6 +326,8 @@
       const slimSelect = document.getElementById("slimSelect");
       const viewSelect = document.getElementById("viewSelect");
       const frameSelect = document.getElementById("frameSelect");
+      const musicToggleButton = document.getElementById("musicToggleButton");
+      const audioSelect = document.getElementById("audioSelect");
       const downloadLinkId = "aura-download-link";
 
       // Base beautify filter (always on: subtle "whitening" + smoothing)
@@ -514,6 +587,58 @@
       const SMOOTH_ALPHA = 0.6;
       const MIN_HOLD_FRAMES = 2;
       const SWITCH_THRESHOLD = 0.02;
+      let isAuraDetected = false;
+
+      // Music controls: user can opt in to play while aura is being detected.
+      const auraAudio = new Audio();
+      auraAudio.loop = true;
+      auraAudio.preload = "auto";
+      let userWantsMusic = false;
+
+      function updateMusicButtonState() {
+        const isPlaying = !auraAudio.paused && !auraAudio.ended;
+        musicToggleButton.classList.toggle("is-playing", isPlaying);
+        musicToggleButton.textContent = isPlaying ? "⏸ Pause Aura Song" : "🎵 Play Aura Song";
+      }
+
+      function updateAudioSource() {
+        const selected = audioSelect.value;
+        auraAudio.pause();
+        auraAudio.src = selected;
+        auraAudio.load();
+        updateMusicButtonState();
+      }
+
+      async function syncMusicWithDetection() {
+        if (!userWantsMusic || !isAuraDetected) {
+          auraAudio.pause();
+          updateMusicButtonState();
+          return;
+        }
+
+        if (!auraAudio.src) {
+          updateAudioSource();
+        }
+
+        try {
+          await auraAudio.play();
+        } catch (err) {
+          console.warn("Audio play blocked:", err);
+        }
+        updateMusicButtonState();
+      }
+
+      audioSelect.addEventListener("change", () => {
+        updateAudioSource();
+        syncMusicWithDetection();
+      });
+
+      musicToggleButton.addEventListener("click", async () => {
+        userWantsMusic = !userWantsMusic;
+        await syncMusicWithDetection();
+      });
+
+      updateAudioSource();
 
       // Auto finalization over first 5s
       let finalizedAura = null;
@@ -1020,6 +1145,8 @@
           );
 
           if (result.faceLandmarks && result.faceLandmarks.length > 0) {
+            isAuraDetected = true;
+            syncMusicWithDetection();
             const landmarks = result.faceLandmarks[0];
             const blend = result.faceBlendshapes?.[0]?.categories || [];
             const aura = classifyAura(blend, landmarks);
@@ -1115,6 +1242,8 @@
               ? `Final aura: ${displayAura.name} (${conf}%)`
               : `Scanning aura: ${displayAura.name} (${conf}%)`;
           } else {
+            isAuraDetected = false;
+            syncMusicWithDetection();
             // No face: reset state so new session can pick a fresh aura
             smoothedAura = null;
             currentAura = null;
