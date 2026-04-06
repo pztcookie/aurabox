@@ -304,9 +304,14 @@
     <div id="musicControls">
       <button id="musicToggleButton">🎵 Play Aura Song</button>
       <select id="audioSelect" aria-label="Choose aura music">
-        <option value="adore_famous.mp3">Famous -- adore</option>
-        <option value="breathe_u_in.mp3">Breathe u in -- adore</option>
-        <option value="dancing_while_the_world_burns.mp3">Dancing while the world burns -- adore</option>      </select>
+        <option value="aura_songs/adore_famous.mp3">Famous -- adore</option>
+        <option value="aura_songs/breathe_u_in.mp3">Breathe u in -- adore</option>
+        <option value="aura_songs/dancing_while_the_world_burns.mp3">Dancing while the world burns -- adore</option>
+        <option value="aura_songs/molly.mp3">Molly</option>
+        <option value="aura_songs/black_diamond.mp3">Black diamond</option>
+        <option value="aura_songs/shards.mp3">Shards</option>
+        <option value="aura_songs/playgirl.mp3">Playgirl</option>
+      </select>
     </div>
 
     <script type="module">
@@ -594,6 +599,16 @@
       auraAudio.loop = true;
       auraAudio.preload = "auto";
       let userWantsMusic = false;
+      let lastAutoAuraName = null;
+      const AURA_SONG_MAP = {
+        "Mysterious NPC Aura 👁": "aura_songs/dancing_while_the_world_burns.mp3",
+        "Ancient Forest Spirit Aura 🌿": "aura_songs/molly.mp3",
+        "Ancient Alchemist Aura ⚙️": "aura_songs/black_diamond.mp3",
+        "Moonlit Witch Aura 🌙": "aura_songs/breathe_u_in.mp3",
+        "Lilith's Tilt Aura 🕯️": "aura_songs/shards.mp3",
+        "Magical Girl Aura ✨": "aura_songs/adore_famous.mp3",
+        "Shadow Fox Aura 🦊": "aura_songs/playgirl.mp3",
+      };
 
       function updateMusicButtonState() {
         const isPlaying = !auraAudio.paused && !auraAudio.ended;
@@ -607,6 +622,18 @@
         auraAudio.src = selected;
         auraAudio.load();
         updateMusicButtonState();
+      }
+
+      function autoSelectSongForAura(auraName) {
+        if (!auraName) return;
+        if (lastAutoAuraName === auraName) return;
+        const mappedSong = AURA_SONG_MAP[auraName];
+        if (!mappedSong) return;
+        lastAutoAuraName = auraName;
+        if (audioSelect.value !== mappedSong) {
+          audioSelect.value = mappedSong;
+          updateAudioSource();
+        }
       }
 
       async function syncMusicWithDetection() {
@@ -629,6 +656,7 @@
       }
 
       audioSelect.addEventListener("change", () => {
+        // Manual override: user can switch to any song from the dropdown.
         updateAudioSource();
         syncMusicWithDetection();
       });
@@ -1146,7 +1174,6 @@
 
           if (result.faceLandmarks && result.faceLandmarks.length > 0) {
             isAuraDetected = true;
-            syncMusicWithDetection();
             const landmarks = result.faceLandmarks[0];
             const blend = result.faceBlendshapes?.[0]?.categories || [];
             const aura = classifyAura(blend, landmarks);
@@ -1235,6 +1262,8 @@
             }
 
             const displayAura = finalizedAura || currentAura || aura;
+            autoSelectSongForAura(displayAura.name);
+            syncMusicWithDetection();
             drawAuraFromLandmarks(landmarks, displayAura);
             drawAuraEffects(displayAura, landmarks); // ✅ Animated aura VFX
             const conf = Math.round((displayAura.confidence || 0) * 100);
@@ -1243,6 +1272,7 @@
               : `Scanning aura: ${displayAura.name} (${conf}%)`;
           } else {
             isAuraDetected = false;
+            lastAutoAuraName = null;
             syncMusicWithDetection();
             // No face: reset state so new session can pick a fresh aura
             smoothedAura = null;
