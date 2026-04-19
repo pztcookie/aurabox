@@ -45,6 +45,43 @@ A hosted assistant **cannot** log into your Railway account for you. These steps
 
 Default image backend is **Pollinations** (no API key). Optional env vars on Railway match `server.py` (e.g. `AURABOX_FLUX_BACKEND`, `POLLINATIONS_MODEL`).
 
+---
+
+### Deploy the API on your own server (no Railway)
+
+If you do not want Railway, run `server.py` on any Linux VPS (DigitalOcean, Hetzner, Linode, AWS EC2, etc.) and expose it over HTTPS.
+
+1. SSH into your server and install Python 3.10+.
+2. Clone this repo and enter the folder:
+   ```bash
+   git clone https://github.com/pztcookie/aurabox.git
+   cd aurabox
+   ```
+3. Install dependencies:
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
+4. Start the API:
+   ```bash
+   PORT=8000 python3 server.py
+   ```
+5. Test from your local machine:
+   ```bash
+   curl -i -X POST "http://YOUR_SERVER_IP:8000/api/flux-generate" \
+     -H "Content-Type: application/json" \
+     -d '{"prompt":"cute mochi monster","width":512,"height":512}'
+   ```
+   You should get JSON with `image_base64`.
+6. Put Nginx/Caddy in front with HTTPS, then use:
+   `https://YOUR_DOMAIN/api/flux-generate`
+7. Set this in `site-config.js`:
+   ```js
+   window.AURABOX_DEFAULT_REMOTE_API = "https://YOUR_DOMAIN/api/flux-generate";
+   ```
+8. Commit + push, then users can open your GitHub Pages link normally.
+
 **Camera / selfie (page 2):** Browsers usually require a **secure context** (HTTPS, or `http://localhost`). Opening files with **`file://`** often **blocks the webcam**, even if Character Lab can still call your API. So for the full three-page flow, **host the HTML on HTTPS**, not only a local double-click.
 
 **Character Lab only:** If users only need generation and skip the camera, `file://` + `?api=` may work in some browsers, but HTTPS hosting is still recommended.
@@ -156,6 +193,23 @@ Please use AuraBox **respectfully**: batch your experiments, cache results you n
 
 ## Troubleshooting
 
+- **Failed to fetch:** This is a browser-level network error (request never got a valid response). Most common causes:
+  - API URL is unreachable from the browser (server down, bad domain, DNS, timeout).
+  - Mixed content (`https://pztcookie.github.io/...` trying to call `http://...` API). Use HTTPS API URL.
+  - CORS/preflight blocked (API does not allow `OPTIONS` + `POST` from browser).
+  - TLS/certificate issue on the API host.
+  Quick check with curl:
+  ```bash
+  curl -i -X OPTIONS "https://YOUR_API_HOST/api/flux-generate" \
+    -H "Origin: https://pztcookie.github.io" \
+    -H "Access-Control-Request-Method: POST"
+  ```
+  Then:
+  ```bash
+  curl -i -X POST "https://YOUR_API_HOST/api/flux-generate" \
+    -H "Content-Type: application/json" \
+    -d '{"prompt":"test","width":512,"height":512}'
+  ```
 - **405 Method Not Allowed:** The browser sent **POST** to a URL that does not accept it — almost always the **wrong link**. Use your deployed **`server.py`** URL including the path **`/api/flux-generate`** (e.g. `https://xxx.up.railway.app/api/flux-generate`). Do **not** use your **GitHub Pages** URL (`…github.io/aurabox/…`) as `?api=` — Pages is static-only and often returns **405** for POST. If you only pasted the deploy **root** (no path), the app now appends `/api/flux-generate` when the path is empty.
 - **502 / 404 on Character Lab (GitHub Pages):** Pages only serves static files — there is **no** `server.py` and no `/api/flux-generate` on `github.io`. The browser was calling the wrong URL, which often returns **502** or **404**. Deploy `server.py` to Railway, Render, Fly.io, etc., then share AuraBox as:  
   `https://YOUR_USER.github.io/aurabox/index.html?api=https%3A%2F%2FYOUR_API_HOST%2Fapi%2Fflux-generate`  
