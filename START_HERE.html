@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AuraBox — Start here</title>
+    <style>
+      :root {
+        --bg: linear-gradient(160deg, #1a1033 0%, #0f1c3a 45%, #102a40 100%);
+        --card: rgba(255, 255, 255, 0.08);
+        --border: rgba(255, 255, 255, 0.18);
+        --text: #f4f0ff;
+        --muted: #c4b8e8;
+        --accent: #a78bfa;
+        --warn-bg: rgba(251, 191, 36, 0.12);
+        --warn-border: rgba(251, 191, 36, 0.45);
+        --warn-text: #fde68a;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.55;
+        padding: 32px 20px 48px;
+      }
+      .wrap {
+        max-width: 640px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: clamp(1.5rem, 4vw, 2rem);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        margin: 0 0 8px;
+      }
+      .sub {
+        color: var(--muted);
+        font-size: 1.05rem;
+        margin-bottom: 28px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px 22px;
+        margin-bottom: 18px;
+        backdrop-filter: blur(8px);
+      }
+      .warn {
+        background: var(--warn-bg);
+        border: 1px solid var(--warn-border);
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-bottom: 22px;
+        color: var(--warn-text);
+        font-size: 0.95rem;
+      }
+      .warn strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 1rem;
+      }
+      ol {
+        margin: 0;
+        padding-left: 1.25rem;
+      }
+      li {
+        margin-bottom: 8px;
+      }
+      code,
+      .mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+        font-size: 0.9em;
+        background: rgba(0, 0, 0, 0.35);
+        padding: 2px 8px;
+        border-radius: 6px;
+      }
+      pre {
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 10px;
+        padding: 14px 16px;
+        overflow-x: auto;
+        font-size: 0.88rem;
+        margin: 10px 0 0;
+      }
+      a.button {
+        display: inline-block;
+        margin-top: 16px;
+        padding: 12px 22px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #7c3aed, #4f46e5);
+        color: #fff !important;
+        text-decoration: none;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        box-shadow: 0 4px 20px rgba(124, 58, 237, 0.35);
+      }
+      a.button:hover {
+        filter: brightness(1.08);
+      }
+      .foot {
+        margin-top: 28px;
+        font-size: 0.88rem;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>AuraBox</h1>
+      <p class="sub">
+        Emotion check-in → aura selfie → kawaii rubber-hose <strong>food creature</strong> lab. Run the small local server, then open the app in your browser.
+      </p>
+
+      <div class="warn">
+        <strong>API usage &amp; daily limits</strong>
+        The default image backend uses a <strong>shared free service</strong> (Pollinations). It is meant for
+        <strong>demos, learning, and light personal use</strong>. Requests are <strong>limited per day</strong> and can
+        slow down or fail if too many people use it at once. Please don’t spam clicks — be kind to shared infrastructure.
+        For heavy use, switch to a paid API or self-hosted model (see <span class="mono">README.md</span>).
+      </div>
+
+      <div class="card">
+        <strong>How to run</strong>
+        <ol>
+          <li>Open a terminal in the <span class="mono">aurabox</span> folder.</li>
+          <li>Run:
+            <pre>python3 server.py</pre>
+          </li>
+          <li>
+            Click the button below (or open
+            <span class="mono">http://127.0.0.1:8000/index.html</span>).
+          </li>
+        </ol>
+        <a class="button" href="http://127.0.0.1:8000/index.html">Open AuraBox &amp; Character Lab</a>
+        <p class="foot">
+          This link only works <strong>after</strong> <span class="mono">server.py</span> is running. Full details:
+          <span class="mono">README.md</span>.
+        </p>
+      </div>
+
+      <div class="card">
+        <strong>Why not double-click <span class="mono">index.html</span>?</strong>
+        <p style="margin: 8px 0 0">
+          Character generation talks to <span class="mono">/api/flux-generate</span> on the same computer. That requires the
+          Python server — opening the file as <span class="mono">file://...</span> won’t load images correctly.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

@@ -20,7 +20,7 @@
 
       body {
         margin: 0;
-        background-image: url("we_can_do_it.jpg");
+        background-image: url("page1_user_emotion_layer/relax_kie.jpg");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -35,6 +35,170 @@
         align-items: center;
         justify-content: flex-start;
         padding-top: 32px;
+        transition: background-image 0.35s ease;
+      }
+
+      body.page-selfie {
+        background-image: url("we_can_do_it.jpg");
+      }
+
+      body.page-character {
+        background-image: url("page3_character_generation_layer/shades_of_blue.jpg");
+      }
+
+      .page {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      #emotionCard {
+        width: min(760px, 92vw);
+        margin-top: 28px;
+        padding: 18px 20px 24px;
+        border-radius: 20px;
+        background: linear-gradient(145deg, rgba(20, 12, 40, 0.34), rgba(8, 20, 42, 0.3));
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        backdrop-filter: blur(4px);
+        box-shadow:
+          0 0 18px rgba(255, 123, 255, 0.2),
+          0 0 36px rgba(80, 170, 255, 0.12);
+      }
+
+      #emotionPage h1 {
+        width: min(760px, 92vw);
+        margin: 0 auto;
+        padding: 6px 12px 8px;
+        font-size: clamp(22px, 3.4vw, 36px);
+        letter-spacing: 0.1em;
+        line-height: 1.25;
+        color: #f5f3ff;
+        font-weight: 700;
+        -webkit-text-stroke: 0.4px rgba(67, 56, 202, 0.55);
+        text-shadow:
+          0 1px 2px rgba(30, 27, 75, 0.65),
+          0 0 10px rgba(196, 181, 253, 1),
+          0 0 20px rgba(129, 140, 248, 0.95),
+          0 0 34px rgba(99, 102, 241, 0.86),
+          0 0 50px rgba(56, 189, 248, 0.58);
+      }
+
+      #emotionPage h1::before,
+      #emotionPage h1::after {
+        width: 50px;
+        height: 3px;
+        background: linear-gradient(
+          to right,
+          transparent,
+          rgba(255, 255, 255, 0.95),
+          rgba(196, 181, 253, 0.98),
+          rgba(129, 140, 248, 0.98),
+          rgba(56, 189, 248, 0.92),
+          transparent
+        );
+      }
+
+      #emotionPrompt {
+        margin: 0;
+        font-size: 19px;
+        line-height: 1.6;
+        color: #eef2ff;
+        font-weight: 700;
+        text-shadow:
+          0 1px 2px rgba(30, 27, 75, 0.7),
+          0 0 10px rgba(255, 255, 255, 0.95),
+          0 0 18px rgba(129, 140, 248, 0.9),
+          0 0 28px rgba(99, 102, 241, 0.6);
+      }
+
+      #emotionPrompt span {
+        color: #f5f3ff;
+        text-shadow:
+          0 0 8px rgba(255, 255, 255, 0.9),
+          0 0 16px rgba(167, 139, 250, 0.85);
+      }
+
+      #emotionInputWrap {
+        margin-top: 18px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      #emotionInput {
+        width: min(530px, 86vw);
+        border-radius: 999px;
+        border: 1.25px solid rgba(224, 231, 255, 0.52);
+        background-color: transparent !important;
+        background-image: none !important;
+        color: #e0e7ff;
+        font-family: inherit;
+        font-size: 15px;
+        letter-spacing: 0.02em;
+        padding: 11px 16px;
+        outline: none;
+        -webkit-appearance: none;
+        appearance: none;
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+      }
+
+      #emotionInput::placeholder {
+        color: rgba(224, 231, 255, 0.7);
+      }
+
+      #emotionInput:focus {
+        border-color: rgba(255, 255, 255, 0.76);
+        box-shadow: 0 0 0 1px rgba(224, 231, 255, 0.14);
+      }
+
+      #emotionSubmitButton,
+      #goToSelfieButton,
+      #goBackToEmotionButton,
+      #goBackToSelfieButton {
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.55);
+        background: radial-gradient(circle at top left, rgba(255, 170, 235, 0.35), transparent),
+          rgba(34, 18, 56, 0.92);
+        color: #fff7fd;
+        font-family: inherit;
+        font-size: 14px;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        padding: 10px 16px;
+        box-shadow:
+          0 0 10px rgba(255, 123, 255, 0.4),
+          0 0 22px rgba(56, 189, 248, 0.25);
+      }
+
+      #emotionSubmitButton:hover,
+      #goToSelfieButton:hover,
+      #goBackToEmotionButton:hover,
+      #goBackToSelfieButton:hover {
+        transform: translateY(-1px);
+      }
+
+      #emotionSummary {
+        margin: 16px auto 0;
+        width: min(700px, 90vw);
+        border-radius: 16px;
+        border: 1px solid rgba(165, 180, 252, 0.2);
+        background: rgba(10, 12, 35, 0.2);
+        padding: 14px 16px;
+        font-size: 15px;
+        line-height: 1.65;
+        color: #c7d2fe;
+        text-shadow:
+          0 0 6px rgba(255, 255, 255, 0.55),
+          0 0 12px rgba(129, 140, 248, 0.55),
+          0 0 18px rgba(99, 102, 241, 0.38);
       }
       #container {
         position: relative;
@@ -212,6 +376,95 @@
         border-color: rgba(127, 240, 255, 0.72);
       }
 
+      #characterGenerator {
+        margin-top: 12px;
+        width: min(760px, 92vw);
+        padding: 14px 14px 16px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: rgba(7, 10, 30, 0.58);
+        backdrop-filter: blur(5px);
+      }
+
+      #foodVibeInput {
+        width: min(420px, 84vw);
+        margin-top: 4px;
+        padding: 9px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        background: rgba(8, 12, 36, 0.72);
+        color: #f3f6ff;
+        font-family: inherit;
+        font-size: 14px;
+        outline: none;
+      }
+
+      #generateCharacterButton {
+        padding: 10px 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.62);
+        background: radial-gradient(circle at top left, rgba(184, 167, 255, 0.35), transparent),
+          rgba(23, 26, 70, 0.9);
+        color: #f8f8ff;
+        font-family: inherit;
+        font-size: 14px;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+      }
+
+      #generateCharacterButton:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
+      #generationStatus {
+        margin-top: 10px;
+        font-size: 14px;
+        color: #dbe4ff;
+      }
+
+      #generationStatus:empty {
+        display: none;
+      }
+
+      #captureHint {
+        margin-top: 8px;
+        font-size: 13px;
+        color: #d8dcff;
+      }
+
+      #characterLabContext {
+        margin-top: 12px;
+        width: min(760px, 92vw);
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(9, 13, 36, 0.64);
+        color: #eef2ff;
+        line-height: 1.55;
+        text-align: left;
+      }
+
+      #characterApiNotice {
+        margin: 12px 0 0;
+        max-width: min(760px, 92vw);
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(251, 191, 36, 0.35);
+        background: rgba(251, 191, 36, 0.08);
+        color: #fde68a;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      #generatedCharacterImage {
+        margin-top: 12px;
+        width: min(420px, 86vw);
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        display: none;
+      }
+
       h1 {
         margin: 0;
         padding: 6px 18px 12px;
@@ -254,65 +507,141 @@
     </style>
   </head>
   <body>
-    <h1>AuraBox Scanner</h1>
+    <section id="emotionPage" class="page">
+      <h1>AuraBox-Scanner: Today's Emotion Aura</h1>
+      <div id="emotionCard">
+        <p id="emotionPrompt">
+          <span>(˶ᵔ ᵕ ᵔ˶) ✨</span> Tell me how your heart feels today, little star traveler...
+          <br />
+          <span>╰(*´︶`*)╯♡</span> Whisper your emotion and I will whip up a tiny magical summary.
+        </p>
+        <div id="emotionInputWrap">
+          <input
+            id="emotionInput"
+            type="text"
+            placeholder="e.g. calm but a little nervous, hopeful, dreamy..."
+            aria-label="How do you feel today?"
+          />
+          <button id="emotionSubmitButton">Enter Emotion</button>
+        </div>
+        <div id="emotionSummary">
+          Emotion summary will appear here after you enter your feeling.
+        </div>
+        <div style="margin-top: 14px">
+          <button id="goToSelfieButton">Open Today's AuraBox Selfie</button>
+        </div>
+      </div>
+    </section>
 
-    <div id="container">
-      <video id="video" width="640" height="480" autoplay muted></video>
-      <canvas id="overlay" width="640" height="480"></canvas>
-    </div>
+    <section id="selfiePage" class="page hidden">
+      <h1>AuraBox-Scanner: Today's AuraBox Selfie</h1>
+      <button id="goBackToEmotionButton">Back to Emotion Aura</button>
 
-    <div id="auraLabel">Initializing aura scan...</div>
-    <div id="controls">
-      <span class="filter-label">Filter</span>
-      <select id="filterSelect">
-        <option value="none">None</option>
-        <option value="soft">Soft glow</option>
-        <option value="warm">Warm</option>
-        <option value="cool">Cool</option>
-        <option value="vintage">Vintage</option>
-        <option value="nostalgic">CCD effect</option>
-        <option value="dreamy">Dreamy</option>
-      </select>
+      <div id="container">
+        <video id="video" width="640" height="480" autoplay muted></video>
+        <canvas id="overlay" width="640" height="480"></canvas>
+      </div>
 
-      <span class="filter-label">Face</span>
-      <select id="slimSelect">
-        <option value="normal">Normal</option>
-        <option value="slim">Slim face</option>
-      </select>
+      <div id="auraLabel">Initializing aura scan...</div>
+      <button
+        id="goToCharacterPrimaryButton"
+        style="
+          margin-top: 12px;
+          padding: 10px 18px;
+          border-radius: 999px;
+          border: 1px solid rgba(255, 255, 255, 0.62);
+          background: radial-gradient(circle at top left, rgba(184, 167, 255, 0.35), transparent), rgba(23, 26, 70, 0.92);
+          color: #f8f8ff;
+          font-family: inherit;
+          font-size: 15px;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+          cursor: pointer;
+          box-shadow: 0 0 12px rgba(183, 168, 255, 0.5), 0 0 20px rgba(56, 189, 248, 0.3);
+        "
+      >
+        Go to Character Lab (Page 3)
+      </button>
+      <div id="captureHint">Capture your aura first, then open page 3.</div>
+      <div id="controls">
+        <span class="filter-label">Filter</span>
+        <select id="filterSelect">
+          <option value="none">None</option>
+          <option value="soft">Soft glow</option>
+          <option value="warm">Warm</option>
+          <option value="cool">Cool</option>
+          <option value="vintage">Vintage</option>
+          <option value="nostalgic">CCD effect</option>
+          <option value="dreamy">Dreamy</option>
+        </select>
 
-      <span class="filter-label">View</span>
-      <select id="viewSelect">
-        <option value="normal">Normal</option>
-        <option value="mirror">Mirror</option>
-      </select>
+        <span class="filter-label">Face</span>
+        <select id="slimSelect">
+          <option value="normal">Normal</option>
+          <option value="slim">Slim face</option>
+        </select>
 
-      <span class="filter-label">Frames</span>
-      <select id="frameSelect">
-        <option value="none">None</option>
-        <option value="cookieland_tempura_cloud">Tempura cloud</option>
-        <option value="desserts_party">Desserts party</option>
-        <option value="eclair_dog_cloud_watch">Eclair dog cloud watch</option>
-        <option value="samoye_cloud_party">Samoye cloud party</option>
-        <option value="sleeping_on_the_cloud">Sleeping on the cloud</option>
-        <option value="stargazing_crew">Stargazing crew</option>
-        <option value="sunset_watching">Sunset watching</option>
-      </select>
+        <span class="filter-label">View</span>
+        <select id="viewSelect">
+          <option value="normal">Normal</option>
+          <option value="mirror">Mirror</option>
+        </select>
 
-      <button id="captureButton">Capture aura</button>
-      <button id="resetButton">Reset</button>
-    </div>
-    <div id="musicControls">
-      <button id="musicToggleButton">🎵 Play Aura Song</button>
-      <select id="audioSelect" aria-label="Choose aura music">
-        <option value="aura_songs/adore_famous.mp3">Famous -- adore</option>
-        <option value="aura_songs/breathe_u_in.mp3">Breathe u in -- adore</option>
-        <option value="aura_songs/dancing_while_the_world_burns.mp3">Dancing while the world burns -- adore</option>
-        <option value="aura_songs/molly.mp3">Molly</option>
-        <option value="aura_songs/black_diamond.mp3">Black diamond</option>
-        <option value="aura_songs/shards.mp3">Shards</option>
-        <option value="aura_songs/playgirl.mp3">Playgirl</option>
-      </select>
-    </div>
+        <span class="filter-label">Frames</span>
+        <select id="frameSelect">
+          <option value="none">None</option>
+          <option value="cookieland_tempura_cloud">Tempura cloud</option>
+          <option value="desserts_party">Desserts party</option>
+          <option value="eclair_dog_cloud_watch">Eclair dog cloud watch</option>
+          <option value="samoye_cloud_party">Samoye cloud party</option>
+          <option value="sleeping_on_the_cloud">Sleeping on the cloud</option>
+          <option value="stargazing_crew">Stargazing crew</option>
+          <option value="sunset_watching">Sunset watching</option>
+        </select>
+
+        <button id="captureButton">Capture aura</button>
+        <button id="resetButton">Reset</button>
+      </div>
+      <div id="musicControls">
+        <button id="musicToggleButton">🎵 Play Aura Song</button>
+        <select id="audioSelect" aria-label="Choose aura music">
+          <option value="aura_songs/adore_famous.mp3">Famous -- adore</option>
+          <option value="aura_songs/breathe_u_in.mp3">Breathe u in -- adore</option>
+          <option value="aura_songs/dancing_while_the_world_burns.mp3">
+            Dancing while the world burns -- adore
+          </option>
+          <option value="aura_songs/molly.mp3">Molly</option>
+          <option value="aura_songs/black_diamond.mp3">Black diamond</option>
+          <option value="aura_songs/shards.mp3">Shards</option>
+          <option value="aura_songs/playgirl.mp3">Playgirl</option>
+        </select>
+      </div>
+    </section>
+    <section id="characterPage" class="page hidden">
+      <h1>AuraBox-Scanner: Aura Character Lab</h1>
+      <p id="characterApiNotice" role="note">
+        Image generation uses third-party APIs. Free tiers have daily limits and may slow down or fail under heavy use — generate sparingly.
+      </p>
+      <button id="goBackToSelfieButton">Back to AuraBox Selfie</button>
+      <div id="characterLabContext">
+        <div id="page3EmotionPreview">Emotion from page 1: (not set yet)</div>
+        <div id="page3AuraPreview">Captured aura from page 2: (not captured yet)</div>
+      </div>
+      <div id="characterGenerator">
+        <input
+          id="foodVibeInput"
+          type="text"
+          placeholder="Food monster base (e.g. mochi, ramen beast, tiramisu titan)"
+          aria-label="Food vibe for cartoon generation"
+        />
+        <button id="generateCharacterButton" disabled>Generate kawaii food creature</button>
+        <div id="generationStatus"></div>
+        <img
+          id="generatedCharacterImage"
+          alt="Generated rubber hose food monster illustration"
+        />
+      </div>
+    </section>
 
     <script type="module">
       import {
@@ -320,6 +649,19 @@
         FilesetResolver,
       } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0";
 
+      const emotionPage = document.getElementById("emotionPage");
+      const selfiePage = document.getElementById("selfiePage");
+      const characterPage = document.getElementById("characterPage");
+      const emotionInput = document.getElementById("emotionInput");
+      const emotionSubmitButton = document.getElementById("emotionSubmitButton");
+      const emotionSummary = document.getElementById("emotionSummary");
+      const goToSelfieButton = document.getElementById("goToSelfieButton");
+      const goBackToEmotionButton = document.getElementById("goBackToEmotionButton");
+      const goToCharacterPrimaryButton = document.getElementById("goToCharacterPrimaryButton");
+      const goBackToSelfieButton = document.getElementById("goBackToSelfieButton");
+      const page3EmotionPreview = document.getElementById("page3EmotionPreview");
+      const page3AuraPreview = document.getElementById("page3AuraPreview");
+      const captureHint = document.getElementById("captureHint");
       const video = document.getElementById("video");
       const canvas = document.getElementById("overlay");
       const container = document.getElementById("container");
@@ -333,7 +675,261 @@
       const frameSelect = document.getElementById("frameSelect");
       const musicToggleButton = document.getElementById("musicToggleButton");
       const audioSelect = document.getElementById("audioSelect");
+      const generateCharacterButton = document.getElementById("generateCharacterButton");
+      const generationStatus = document.getElementById("generationStatus");
+      const generatedCharacterImage = document.getElementById("generatedCharacterImage");
+      const foodVibeInput = document.getElementById("foodVibeInput");
       const downloadLinkId = "aura-download-link";
+      const EMOTION_LOG_NAMESPACE = "sentence_embeddings/current_emotion_entry";
+      const FLUX_ENDPOINT = window.AURABOX_FLUX_ENDPOINT || "/api/flux-generate";
+      let scannerInitialized = false;
+      let hasSubmittedEmotion = false;
+      let latestDetectedAuraName = null;
+      let capturedAuraSnapshot = null;
+      const EMOTION_SUMMARY_PLACEHOLDER =
+        "Emotion summary will appear here after you enter your feeling.";
+
+      function resetEmotionWorkflow() {
+        emotionInput.value = "";
+        emotionSummary.textContent = EMOTION_SUMMARY_PLACEHOLDER;
+        localStorage.removeItem(EMOTION_LOG_NAMESPACE);
+        hasSubmittedEmotion = false;
+        latestDetectedAuraName = null;
+        capturedAuraSnapshot = null;
+        generateCharacterButton.disabled = true;
+        generationStatus.textContent = "";
+        generatedCharacterImage.style.display = "none";
+        generatedCharacterImage.removeAttribute("src");
+        foodVibeInput.value = "";
+      }
+
+      function clearStoredRecordsAfterGeneration() {
+        localStorage.removeItem(EMOTION_LOG_NAMESPACE);
+        hasSubmittedEmotion = false;
+        latestDetectedAuraName = null;
+        capturedAuraSnapshot = null;
+        emotionInput.value = "";
+        emotionSummary.textContent = EMOTION_SUMMARY_PLACEHOLDER;
+        foodVibeInput.value = "";
+        captureHint.textContent = "Capture your aura first, then open page 3.";
+        renderCharacterPageContext();
+        updateGenerateButtonState();
+      }
+
+      function renderCharacterPageContext() {
+        const emotionEntry = readStoredEmotionEntry();
+        const emotionText = (emotionEntry?.text || "").trim();
+        page3EmotionPreview.textContent = emotionText
+          ? `Emotion from page 1: ${emotionText}`
+          : "Emotion from page 1: (not set yet)";
+
+        page3AuraPreview.textContent = capturedAuraSnapshot
+          ? `Captured aura from page 2: ${capturedAuraSnapshot.name} (${capturedAuraSnapshot.confidence}%)`
+          : "Captured aura from page 2: (not captured yet)";
+      }
+
+      function showEmotionPage() {
+        document.body.classList.remove("page-selfie", "page-character");
+        emotionPage.classList.remove("hidden");
+        selfiePage.classList.add("hidden");
+        characterPage.classList.add("hidden");
+        resetEmotionWorkflow();
+      }
+
+      function showSelfiePage() {
+        if (!hasSubmittedEmotion) {
+          emotionSummary.textContent =
+            "Please enter your emotion first so we can complete the flow: emotion -> summary -> selfie aura capture.";
+          emotionInput.focus();
+          return;
+        }
+        document.body.classList.remove("page-character");
+        document.body.classList.add("page-selfie");
+        emotionPage.classList.add("hidden");
+        selfiePage.classList.remove("hidden");
+        characterPage.classList.add("hidden");
+        if (!scannerInitialized) {
+          scannerInitialized = true;
+          init();
+        }
+      }
+
+      function showCharacterPage() {
+        if (!hasSubmittedEmotion) {
+          generationStatus.textContent = "Please complete page 1 emotion entry first.";
+          showEmotionPage();
+          return;
+        }
+        if (!capturedAuraSnapshot) {
+          captureHint.textContent =
+            "Please click Capture Aura first, then open Character Lab.";
+          showSelfiePage();
+          return;
+        }
+        document.body.classList.remove("page-selfie");
+        document.body.classList.add("page-character");
+        emotionPage.classList.add("hidden");
+        selfiePage.classList.add("hidden");
+        characterPage.classList.remove("hidden");
+        renderCharacterPageContext();
+        updateGenerateButtonState();
+      }
+
+      function createEmotionSummary(inputText) {
+        const text = inputText.toLowerCase();
+        if (/(anxious|nervous|stressed|worried|overwhelmed)/.test(text)) {
+          return "Your aura feels like a brave little comet: a bit shaky, yet still glowing forward. Breathe softly, and your magic steadies into strength.";
+        }
+        if (/(happy|excited|joy|grateful|great)/.test(text)) {
+          return "Your aura sparkles like confetti starlight. Joy is flowing through your field, and that bright warmth can lift everyone around you.";
+        }
+        if (/(sad|down|lonely|tired|drained|blue)/.test(text)) {
+          return "Your aura is a twilight sky right now: tender, quiet, and deeply human. Rest is not retreat; it is where your glow refills.";
+        }
+        if (/(calm|peaceful|relaxed|okay|content)/.test(text)) {
+          return "Your aura hums like moonlight on still water. This peaceful frequency is beautiful grounding magic.";
+        }
+        return "Your aura today is layered and beautifully real, like pastel mist over a night garden. Every feeling you named is part of your magic map.";
+      }
+
+      function storeEmotionEntry(inputText, summaryText) {
+        const nowIso = new Date().toISOString();
+        const entry = {
+          text: inputText,
+          summary: summaryText,
+          timestamp: nowIso,
+        };
+        localStorage.setItem(EMOTION_LOG_NAMESPACE, JSON.stringify(entry));
+      }
+
+      function readStoredEmotionEntry() {
+        try {
+          return JSON.parse(localStorage.getItem(EMOTION_LOG_NAMESPACE) || "null");
+        } catch {
+          return null;
+        }
+      }
+
+      function updateGenerateButtonState() {
+        const hasEmotion = !!readStoredEmotionEntry()?.text;
+        const hasFoodVibe = !!(foodVibeInput.value || "").trim();
+        generateCharacterButton.disabled = !(hasEmotion && capturedAuraSnapshot?.name && hasFoodVibe);
+      }
+
+      function buildRubberHosePrompt(emotionEntry, auraName, foodVibe) {
+        const vibe = (emotionEntry?.text || "").trim();
+        const summary = (emotionEntry?.summary || "").trim();
+        return [
+          "Create ONE anthropomorphic food-based character illustration in a hybrid style: classic rubber hose animation (bendy noodle arms and legs, fluid squash-and-stretch, bold ink outlines, cel shading, subtle vintage film grain) blended with Cookie Run–inspired art direction — distinct, whimsical, kawaii-cute, sugary fantasy, stylized chibi proportions, soft squished rounded bodies, big expressive glossy eyes, tiny hands and feet, plush toy–like volumes, candy-coated textures and pastel sparkle accents.",
+          "Aesthetic keywords: kawaii, chibi-squish, sweet dessert fantasy, playful exaggeration, soft gradients, icing-like highlights, no gritty realism.",
+          "IMPORTANT: Do NOT show a realistic human, human portrait, or photo-like face. The character must be a cute cartoon food creature / living snack monster only.",
+          `Food identity (shape, toppings, materials of the body): "${foodVibe}".`,
+          `User emotion (show in pose, eyebrows, blush, sparkles — still non-human cartoon): "${vibe}".`,
+          `Aura (colors, tiny props, magical aura shapes around the cookie-creature): "${auraName}".`,
+          `Mood from summary (story beat, energy of the scene): "${summary}".`,
+          "Composition: single character, centered, full body, simple sugary gradient or soft bakery-style background, magical confetti or sugar dust optional.",
+          "No text, no watermark, no logo, no UI, no watermark strip.",
+        ].join(" ");
+      }
+
+      async function generateAuraCharacter() {
+        const emotionEntry = readStoredEmotionEntry();
+        if (!emotionEntry?.text) {
+          generationStatus.textContent = "Please complete page 1 emotion entry first.";
+          return;
+        }
+        const auraNameForCharacter = capturedAuraSnapshot?.name || latestDetectedAuraName;
+        if (!auraNameForCharacter) {
+          generationStatus.textContent = "Capture aura on page 2 first, then generate.";
+          return;
+        }
+        const foodVibe = (foodVibeInput.value || "").trim();
+        if (!foodVibe) {
+          generationStatus.textContent = "Please enter what kind of food you think you are.";
+          return;
+        }
+
+        const prompt = buildRubberHosePrompt(emotionEntry, auraNameForCharacter, foodVibe);
+        generationStatus.textContent =
+          "Baking a squishy kawaii food creature... rubber hose + Cookie Run energy!";
+        generateCharacterButton.disabled = true;
+
+        try {
+          const response = await fetch(FLUX_ENDPOINT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              model: "flux",
+              prompt,
+              width: 1024,
+              height: 1024,
+            }),
+          });
+
+          let data;
+          if (!response.ok) {
+            let detail = `Generation failed (${response.status})`;
+            try {
+              data = await response.json();
+              if (data?.error) detail = data.error;
+            } catch {
+              /* ignore */
+            }
+            throw new Error(detail);
+          }
+
+          data = await response.json();
+          const mime = data.image_mime || "image/png";
+          const imageUrl =
+            data.image_url ||
+            (data.image_base64 ? `data:${mime};base64,${data.image_base64}` : "");
+          if (!imageUrl) {
+            throw new Error("No image returned from generation endpoint.");
+          }
+
+          generatedCharacterImage.src = imageUrl;
+          generatedCharacterImage.style.display = "block";
+          generationStatus.textContent = `Food monster ready — emotion + aura (${auraNameForCharacter}) + food (${foodVibe}).`;
+          clearStoredRecordsAfterGeneration();
+        } catch (err) {
+          const msg =
+            err && typeof err === "object" && "message" in err
+              ? String(err.message)
+              : "Generation failed.";
+          generationStatus.textContent = msg;
+          console.warn("Character generation error:", err);
+        } finally {
+          updateGenerateButtonState();
+        }
+      }
+
+      function handleEmotionSubmit() {
+        const raw = (emotionInput.value || "").trim();
+        if (!raw) {
+          emotionSummary.textContent =
+            "Type a little emotion note first, and I will echo it back as a magical summary.";
+          return;
+        }
+        const summary = createEmotionSummary(raw);
+        storeEmotionEntry(raw, summary);
+        hasSubmittedEmotion = true;
+        emotionSummary.textContent = `Emotion summary: ${summary}`;
+        updateGenerateButtonState();
+      }
+
+      emotionSubmitButton.addEventListener("click", handleEmotionSubmit);
+      emotionInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          handleEmotionSubmit();
+        }
+      });
+      goToSelfieButton.addEventListener("click", showSelfiePage);
+      goBackToEmotionButton.addEventListener("click", showEmotionPage);
+      goToCharacterPrimaryButton.addEventListener("click", showCharacterPage);
+      goBackToSelfieButton.addEventListener("click", showSelfiePage);
+      generateCharacterButton.addEventListener("click", generateAuraCharacter);
+      foodVibeInput.addEventListener("input", updateGenerateButtonState);
 
       // Base beautify filter (always on: subtle "whitening" + smoothing)
       // Higher brightness + slightly reduced saturation gives a gentle skin‑brightening effect.
@@ -1150,6 +1746,14 @@
         captureButton.addEventListener("click", () => {
           const auraForShot = finalizedAura || currentAura;
           if (auraForShot) {
+            capturedAuraSnapshot = {
+              name: auraForShot.name,
+              confidence: Math.round((auraForShot.confidence || 0) * 100),
+            };
+            latestDetectedAuraName = auraForShot.name;
+            captureHint.textContent = `Captured aura: ${capturedAuraSnapshot.name} (${capturedAuraSnapshot.confidence}%). You can open Character Lab now.`;
+            renderCharacterPageContext();
+            updateGenerateButtonState();
             captureScreenshotWithAura(auraForShot);
           }
         });
@@ -1159,8 +1763,13 @@
           finalizedAura = null;
           smoothedAura = null;
           currentAura = null;
+          latestDetectedAuraName = null;
+          capturedAuraSnapshot = null;
           auraHistory = [];
           historyStartTime = null;
+          captureHint.textContent = "Capture your aura first, then open page 3.";
+          renderCharacterPageContext();
+          updateGenerateButtonState();
           label.innerText = "Scanning aura: ... (0%)";
         });
 
@@ -1262,6 +1871,8 @@
             }
 
             const displayAura = finalizedAura || currentAura || aura;
+            latestDetectedAuraName = displayAura.name;
+            updateGenerateButtonState();
             autoSelectSongForAura(displayAura.name);
             syncMusicWithDetection();
             drawAuraFromLandmarks(landmarks, displayAura);
@@ -1272,6 +1883,8 @@
               : `Scanning aura: ${displayAura.name} (${conf}%)`;
           } else {
             isAuraDetected = false;
+            latestDetectedAuraName = null;
+            updateGenerateButtonState();
             lastAutoAuraName = null;
             syncMusicWithDetection();
             // No face: reset state so new session can pick a fresh aura
@@ -1292,7 +1905,7 @@
         detect();
       }
 
-      init();
+      showEmotionPage();
     </script>
   </body>
 </html>

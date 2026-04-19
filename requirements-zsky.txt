@@ -1,0 +1,2 @@
+# Optional but recommended for ZSky HTTPS (fewer SSL EOF errors than stdlib urllib).
+requests>=2.28.0

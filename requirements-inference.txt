@@ -1,0 +1,5 @@
+# Remote images via huggingface_hub.InferenceClient (no local weights).
+# Default: provider=hf-inference + runwayml/stable-diffusion-v1-5 (open SD1.5; avoids paid fal-ai on provider=auto).
+# pip install -r requirements-inference.txt
+huggingface_hub>=0.27.0
+pillow>=10.0.0
