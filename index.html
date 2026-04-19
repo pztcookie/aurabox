@@ -677,13 +677,41 @@
     <!-- Runs before the module below so Character Lab can call your hosted API (see README "Remote API"). -->
     <script>
       (function () {
+        /** Normalize https URL: if you only paste the deploy root (e.g. https://x.up.railway.app), append /api/flux-generate */
+        function normalizeAuraBoxApiUrl(raw) {
+          if (!raw || typeof raw !== "string") return raw;
+          var s = raw.trim();
+          if (!/^https?:\/\//i.test(s)) return s;
+          try {
+            var u = new URL(s);
+            var p = (u.pathname || "").replace(/\/+$/, "") || "";
+            if (p === "" || p === "/") {
+              u.pathname = "/api/flux-generate";
+            }
+            return u.href.replace(/\/+$/, "");
+          } catch (e) {
+            return s;
+          }
+        }
         try {
           var params = new URLSearchParams(window.location.search);
           var api = params.get("api");
           if (api && String(api).trim()) {
-            window.AURABOX_FLUX_ENDPOINT = String(api).trim();
+            window.AURABOX_FLUX_ENDPOINT = normalizeAuraBoxApiUrl(String(api).trim());
           } else if (window.AURABOX_DEFAULT_REMOTE_API && String(window.AURABOX_DEFAULT_REMOTE_API).trim()) {
-            window.AURABOX_FLUX_ENDPOINT = String(window.AURABOX_DEFAULT_REMOTE_API).trim();
+            window.AURABOX_FLUX_ENDPOINT = normalizeAuraBoxApiUrl(
+              String(window.AURABOX_DEFAULT_REMOTE_API).trim(),
+            );
+          }
+          if (window.AURABOX_FLUX_ENDPOINT) {
+            try {
+              var ep = new URL(window.AURABOX_FLUX_ENDPOINT);
+              if (/\.github\.io$/i.test(ep.hostname)) {
+                window.AURABOX_API_WRONG_HOST = true;
+              }
+            } catch (e2) {
+              /* ignore */
+            }
           }
           // github.io = static hosting only; no /api/flux-generate unless ?api= or site-config.js default
           if (/\.github\.io$/i.test(location.hostname) && !window.AURABOX_FLUX_ENDPOINT) {
@@ -734,6 +762,7 @@
       const EMOTION_LOG_NAMESPACE = "sentence_embeddings/current_emotion_entry";
       const FLUX_ENDPOINT = window.AURABOX_FLUX_ENDPOINT || "/api/flux-generate";
       const GH_PAGES_MISSING_API = !!window.AURABOX_GH_PAGES_NO_API;
+      const API_HOST_LOOKS_WRONG = !!window.AURABOX_API_WRONG_HOST;
       const ghPagesApiHintEl = document.getElementById("ghPagesApiHint");
       const ghPagesApiExampleEl = document.getElementById("ghPagesApiExample");
       if (GH_PAGES_MISSING_API && ghPagesApiExampleEl) {
@@ -841,6 +870,9 @@
         if (GH_PAGES_MISSING_API) {
           generationStatus.textContent =
             "Deploy server.py and add ?api= to this page’s URL (see red box above).";
+        } else if (API_HOST_LOOKS_WRONG) {
+          generationStatus.textContent =
+            "?api= points at github.io — use your deployed server URL ending in /api/flux-generate instead.";
         }
       }
 
@@ -883,7 +915,7 @@
         const hasEmotion = !!readStoredEmotionEntry()?.text;
         const hasFoodVibe = !!(foodVibeInput.value || "").trim();
         const ready = hasEmotion && capturedAuraSnapshot?.name && hasFoodVibe;
-        generateCharacterButton.disabled = GH_PAGES_MISSING_API || !ready;
+        generateCharacterButton.disabled = GH_PAGES_MISSING_API || API_HOST_LOOKS_WRONG || !ready;
       }
 
       function buildRubberHosePrompt(emotionEntry, auraName, foodVibe) {
@@ -923,6 +955,11 @@
             "GitHub Pages has no image API. Deploy server.py and open this app with ?api=YOUR_HTTPS_API_URL (see red box).";
           return;
         }
+        if (API_HOST_LOOKS_WRONG) {
+          generationStatus.textContent =
+            "The ?api= URL points at github.io — that only serves static files and cannot accept POST. Use your Python server URL ending in /api/flux-generate (e.g. Railway/Render), not your Pages link.";
+          return;
+        }
 
         const prompt = buildRubberHosePrompt(emotionEntry, auraNameForCharacter, foodVibe);
         generationStatus.textContent =
@@ -944,6 +981,13 @@
           let data;
           if (!response.ok) {
             let detail = `Generation failed (${response.status})`;
+            if (response.status === 405) {
+              detail =
+                "405 Method Not Allowed — the server at this URL does not accept POST. " +
+                "Use the full endpoint from your deployed server.py, e.g. https://YOUR-HOST/api/flux-generate " +
+                "(not your github.io Pages URL, not the Pollinations image link). " +
+                `Request URL: ${FLUX_ENDPOINT}`;
+            }
             try {
               data = await response.json();
               if (data?.error) detail = data.error;

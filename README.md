@@ -156,6 +156,7 @@ Please use AuraBox **respectfully**: batch your experiments, cache results you n
 
 ## Troubleshooting
 
+- **405 Method Not Allowed:** The browser sent **POST** to a URL that does not accept it — almost always the **wrong link**. Use your deployed **`server.py`** URL including the path **`/api/flux-generate`** (e.g. `https://xxx.up.railway.app/api/flux-generate`). Do **not** use your **GitHub Pages** URL (`…github.io/aurabox/…`) as `?api=` — Pages is static-only and often returns **405** for POST. If you only pasted the deploy **root** (no path), the app now appends `/api/flux-generate` when the path is empty.
 - **502 / 404 on Character Lab (GitHub Pages):** Pages only serves static files — there is **no** `server.py` and no `/api/flux-generate` on `github.io`. The browser was calling the wrong URL, which often returns **502** or **404**. Deploy `server.py` to Railway, Render, Fly.io, etc., then share AuraBox as:  
   `https://YOUR_USER.github.io/aurabox/index.html?api=https%3A%2F%2FYOUR_API_HOST%2Fapi%2Fflux-generate`  
   (replace with your real HTTPS API URL). The app shows a red help box on Character Lab when this is missing.

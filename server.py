@@ -355,7 +355,8 @@ class AuraBoxHandler(SimpleHTTPRequestHandler):
         sys.stderr.write("%s - - [%s] %s\n" % (self.address_string(), self.log_date_time_string(), format % args))
 
     def do_POST(self) -> None:
-        if self.path.split("?")[0] != "/api/flux-generate":
+        path = self.path.split("?")[0].rstrip("/") or "/"
+        if path != "/api/flux-generate":
             self.send_error(HTTPStatus.NOT_FOUND)
             return
 
@@ -407,7 +408,8 @@ class AuraBoxHandler(SimpleHTTPRequestHandler):
         self.wfile.write(data)
 
     def do_OPTIONS(self) -> None:
-        if self.path.split("?")[0] == "/api/flux-generate":
+        path = self.path.split("?")[0].rstrip("/") or "/"
+        if path == "/api/flux-generate":
             self.send_response(HTTPStatus.NO_CONTENT)
             self.send_header("Access-Control-Allow-Origin", "*")
             self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
