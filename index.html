@@ -643,6 +643,20 @@
       </div>
     </section>
 
+    <!-- Runs before the module below so Character Lab can call your hosted API (see README "Remote API"). -->
+    <script>
+      (function () {
+        try {
+          var params = new URLSearchParams(window.location.search);
+          var api = params.get("api");
+          if (api && String(api).trim()) {
+            window.AURABOX_FLUX_ENDPOINT = String(api).trim();
+          }
+        } catch (e) {
+          /* ignore */
+        }
+      })();
+    </script>
     <script type="module">
       import {
         FaceLandmarker,

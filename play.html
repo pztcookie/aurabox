@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AuraBox — Open</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        max-width: 36rem;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        line-height: 1.5;
+        color: #1e1b2e;
+      }
+      code {
+        font-size: 0.9em;
+        background: #f3f0ff;
+        padding: 0.1em 0.35em;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <main id="main">
+      <p>Opening AuraBox…</p>
+    </main>
+    <script>
+      (function () {
+        // Maintainer: set this to your deployed server.py URL (must be HTTPS in production).
+        // Example: "https://your-app.up.railway.app/api/flux-generate"
+        var AURABOX_REMOTE_API = "";
+
+        var params = new URLSearchParams(location.search);
+        var override = params.get("api");
+        var api = (override && String(override).trim()) ? String(override).trim() : AURABOX_REMOTE_API;
+
+        if (!api) {
+          document.getElementById("main").innerHTML =
+            "<h1>Set your API URL</h1>" +
+            "<p>Edit <code>play.html</code> and set <code>AURABOX_REMOTE_API</code> to your deployed endpoint " +
+            "(same path as <code>server.py</code>: <code>/api/flux-generate</code>), then open this file again.</p>" +
+            "<p>Or open <code>index.html</code> with a query string, for example:</p>" +
+            "<p><code>index.html?api=https%3A%2F%2Fyour-server.com%2Fapi%2Fflux-generate</code></p>" +
+            "<p>For the best experience (camera on page 2), host the static files on <strong>HTTPS</strong> " +
+            "(e.g. GitHub Pages) instead of double-clicking from the desktop.</p>";
+          return;
+        }
+
+        location.replace("index.html?api=" + encodeURIComponent(api));
+      })();
+    </script>
+  </body>
+</html>
