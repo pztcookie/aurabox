@@ -10,6 +10,8 @@
     />
     <!-- html2canvas for full-page screenshot capture -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Optional: set window.AURABOX_DEFAULT_REMOTE_API to your Railway / hosted API (see README). -->
+    <script src="site-config.js"></script>
 
     <style>
       :root {
@@ -680,8 +682,10 @@
           var api = params.get("api");
           if (api && String(api).trim()) {
             window.AURABOX_FLUX_ENDPOINT = String(api).trim();
+          } else if (window.AURABOX_DEFAULT_REMOTE_API && String(window.AURABOX_DEFAULT_REMOTE_API).trim()) {
+            window.AURABOX_FLUX_ENDPOINT = String(window.AURABOX_DEFAULT_REMOTE_API).trim();
           }
-          // github.io = static hosting only; /api/flux-generate is not available unless you pass ?api=https://your-server/...
+          // github.io = static hosting only; no /api/flux-generate unless ?api= or site-config.js default
           if (/\.github\.io$/i.test(location.hostname) && !window.AURABOX_FLUX_ENDPOINT) {
             window.AURABOX_GH_PAGES_NO_API = true;
           }

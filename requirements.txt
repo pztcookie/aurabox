@@ -1,0 +1,2 @@
+# AuraBox API (Railway, Render, etc.). Pollinations backend uses stdlib; requests is optional but listed for tooling.
+requests>=2.28.0

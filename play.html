@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>AuraBox — Open</title>
+    <script src="site-config.js"></script>
     <style>
       body {
         font-family: system-ui, -apple-system, sans-serif;
@@ -27,23 +28,21 @@
     </main>
     <script>
       (function () {
-        // Maintainer: set this to your deployed server.py URL (must be HTTPS in production).
-        // Example: "https://your-app.up.railway.app/api/flux-generate"
-        var AURABOX_REMOTE_API = "";
-
         var params = new URLSearchParams(location.search);
         var override = params.get("api");
-        var api = (override && String(override).trim()) ? String(override).trim() : AURABOX_REMOTE_API;
+        var fromConfig =
+          window.AURABOX_DEFAULT_REMOTE_API && String(window.AURABOX_DEFAULT_REMOTE_API).trim()
+            ? String(window.AURABOX_DEFAULT_REMOTE_API).trim()
+            : "";
+        var api = (override && String(override).trim()) ? String(override).trim() : fromConfig;
 
         if (!api) {
           document.getElementById("main").innerHTML =
             "<h1>Set your API URL</h1>" +
-            "<p>Edit <code>play.html</code> and set <code>AURABOX_REMOTE_API</code> to your deployed endpoint " +
-            "(same path as <code>server.py</code>: <code>/api/flux-generate</code>), then open this file again.</p>" +
-            "<p>Or open <code>index.html</code> with a query string, for example:</p>" +
-            "<p><code>index.html?api=https%3A%2F%2Fyour-server.com%2Fapi%2Fflux-generate</code></p>" +
-            "<p>For the best experience (camera on page 2), host the static files on <strong>HTTPS</strong> " +
-            "(e.g. GitHub Pages) instead of double-clicking from the desktop.</p>";
+            "<p>Edit <code>site-config.js</code> and set <code>AURABOX_DEFAULT_REMOTE_API</code> to your deployed endpoint " +
+            "(e.g. <code>https://your-app.up.railway.app/api/flux-generate</code>), then reload.</p>" +
+            "<p>Or open <code>index.html?api=...</code> with a URL-encoded API URL.</p>" +
+            "<p>For the full flow (camera on page 2), use <strong>HTTPS</strong> (e.g. GitHub Pages).</p>";
           return;
         }
 

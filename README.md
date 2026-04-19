@@ -12,10 +12,38 @@ If **you** run `server.py` on a host you control (Railway, Render, Fly.io, your 
 
 1. Deploy **`server.py`** (same `PORT` / `AURABOX_FLUX_BACKEND` / keys as locally). The server already sends **`Access-Control-Allow-Origin: *`** on `POST /api/flux-generate`, so browsers on other sites can call it.
 2. Share the **static files** (`index.html`, `play.html`, `page1_user_emotion_layer/`, `page3_character_generation_layer/`, `aura_songs/` if used, etc.) on **HTTPS** — for example **GitHub Pages** or any static host.
-3. Point the UI at your API using either:
-   - **`play.html`:** edit the line `var AURABOX_REMOTE_API = "https://YOUR-HOST/api/flux-generate";` then tell people to open `play.html` (it redirects to `index.html?api=...`), or
-   - **`index.html?api=`** — pass your endpoint URL-encoded, e.g.  
+3. Point the UI at your API (pick one):
+   - **`site-config.js` (recommended):** set `window.AURABOX_DEFAULT_REMOTE_API = "https://YOUR-HOST/api/flux-generate"` and push to GitHub. Then players can use the short link below with **no** query string.
+   - **`play.html`:** opens `index.html?api=...` using the same `site-config.js` value (or shows help if empty).
+   - **`index.html?api=`** — one-off testing, URL-encoded, e.g.  
      `index.html?api=https%3A%2F%2Fyour-host%2Fapi%2Fflux-generate`
+
+### Public link (GitHub Pages)
+
+After the API is deployed and `site-config.js` contains your **`https://.../api/flux-generate`** URL, share:
+
+**[https://pztcookie.github.io/aurabox/](https://pztcookie.github.io/aurabox/)**
+
+(Replace `pztcookie` with your GitHub username if the repo lives under a different account.)
+
+---
+
+### Deploy the API on Railway (you run this once)
+
+A hosted assistant **cannot** log into your Railway account for you. These steps take a few minutes:
+
+1. Sign in at [railway.app](https://railway.app/) and click **New project** → **Deploy from GitHub repo** → select **`aurabox`** (or push this repo first so it appears).
+2. Railway should detect **Python** and use the **`Procfile`** (`web: python3 server.py`). The server reads **`PORT`** from the environment (Railway sets this automatically).
+3. Open your service → **Settings** → **Networking** → **Generate domain** (public HTTPS URL), e.g. `https://aurabox-production-xxxx.up.railway.app`.
+4. Confirm the API responds: `POST https://YOUR-URL/api/flux-generate` with JSON `{"prompt":"a red apple","width":512,"height":512}` (or open the root URL in a browser — you should get static files from the same `server.py`).
+5. In this repo, edit **`site-config.js`** and set:
+   ```js
+   window.AURABOX_DEFAULT_REMOTE_API = "https://YOUR-URL/api/flux-generate";
+   ```
+   Commit and push to GitHub. Wait for GitHub Pages to rebuild (~1 minute).
+6. Open the **Public link** above — Character Lab should generate images without `?api=` in the URL.
+
+Default image backend is **Pollinations** (no API key). Optional env vars on Railway match `server.py` (e.g. `AURABOX_FLUX_BACKEND`, `POLLINATIONS_MODEL`).
 
 **Camera / selfie (page 2):** Browsers usually require a **secure context** (HTTPS, or `http://localhost`). Opening files with **`file://`** often **blocks the webcam**, even if Character Lab can still call your API. So for the full three-page flow, **host the HTML on HTTPS**, not only a local double-click.
 
@@ -120,7 +148,9 @@ Please use AuraBox **respectfully**: batch your experiments, cache results you n
 | `zsky_api.py` | Optional ZSky integration |
 | `flux_local.py` | Optional local FLUX (Diffusers) |
 | `START_HERE.html` | Simple landing page + link to the app + limit notice |
-| `play.html` | Optional redirect: set `AURABOX_REMOTE_API` → opens `index.html?api=...` |
+| `play.html` | Redirect using `site-config.js` / `?api=` → `index.html?api=...` |
+| `site-config.js` | Default remote API URL for GitHub Pages (paste Railway URL here) |
+| `Procfile` / `requirements.txt` | Railway / PaaS: run `python3 server.py` |
 
 ---
 
