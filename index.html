@@ -457,6 +457,30 @@
         line-height: 1.45;
       }
 
+      #ghPagesApiHint {
+        margin: 12px 0 0;
+        max-width: min(760px, 92vw);
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(248, 113, 113, 0.45);
+        background: rgba(127, 29, 29, 0.35);
+        color: #fecaca;
+        font-size: 13px;
+        line-height: 1.5;
+        text-align: left;
+      }
+
+      #ghPagesApiHint code {
+        font-size: 11px;
+        word-break: break-all;
+        display: block;
+        margin-top: 8px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.35);
+        color: #e9d5ff;
+      }
+
       #generatedCharacterImage {
         margin-top: 12px;
         width: min(420px, 86vw);
@@ -622,6 +646,11 @@
       <p id="characterApiNotice" role="note">
         Image generation uses third-party APIs. Free tiers have daily limits and may slow down or fail under heavy use — generate sparingly.
       </p>
+      <p id="ghPagesApiHint" class="hidden" role="alert">
+        <strong>GitHub Pages cannot run image generation by itself.</strong> This site only hosts the HTML. Deploy
+        <code style="display: inline; padding: 2px 6px">server.py</code> somewhere (Railway, Render, Fly.io, …), then open AuraBox with your API in the URL, for example:
+        <code id="ghPagesApiExample"></code>
+      </p>
       <button id="goBackToSelfieButton">Back to AuraBox Selfie</button>
       <div id="characterLabContext">
         <div id="page3EmotionPreview">Emotion from page 1: (not set yet)</div>
@@ -651,6 +680,10 @@
           var api = params.get("api");
           if (api && String(api).trim()) {
             window.AURABOX_FLUX_ENDPOINT = String(api).trim();
+          }
+          // github.io = static hosting only; /api/flux-generate is not available unless you pass ?api=https://your-server/...
+          if (/\.github\.io$/i.test(location.hostname) && !window.AURABOX_FLUX_ENDPOINT) {
+            window.AURABOX_GH_PAGES_NO_API = true;
           }
         } catch (e) {
           /* ignore */
@@ -696,6 +729,17 @@
       const downloadLinkId = "aura-download-link";
       const EMOTION_LOG_NAMESPACE = "sentence_embeddings/current_emotion_entry";
       const FLUX_ENDPOINT = window.AURABOX_FLUX_ENDPOINT || "/api/flux-generate";
+      const GH_PAGES_MISSING_API = !!window.AURABOX_GH_PAGES_NO_API;
+      const ghPagesApiHintEl = document.getElementById("ghPagesApiHint");
+      const ghPagesApiExampleEl = document.getElementById("ghPagesApiExample");
+      if (GH_PAGES_MISSING_API && ghPagesApiExampleEl) {
+        let path = location.pathname;
+        if (path.endsWith("/")) path = path.slice(0, -1);
+        if (path.endsWith(".html")) path = path.replace(/\/[^/]+$/, "");
+        const base = `${location.origin}${path}/`;
+        const exampleApi = "https://YOUR-DEPLOYED-SERVER.example.com/api/flux-generate";
+        ghPagesApiExampleEl.textContent = `${base}index.html?api=${encodeURIComponent(exampleApi)}`;
+      }
       let scannerInitialized = false;
       let hasSubmittedEmotion = false;
       let latestDetectedAuraName = null;
@@ -787,6 +831,13 @@
         characterPage.classList.remove("hidden");
         renderCharacterPageContext();
         updateGenerateButtonState();
+        if (ghPagesApiHintEl) {
+          ghPagesApiHintEl.classList.toggle("hidden", !GH_PAGES_MISSING_API);
+        }
+        if (GH_PAGES_MISSING_API) {
+          generationStatus.textContent =
+            "Deploy server.py and add ?api= to this page’s URL (see red box above).";
+        }
       }
 
       function createEmotionSummary(inputText) {
@@ -827,7 +878,8 @@
       function updateGenerateButtonState() {
         const hasEmotion = !!readStoredEmotionEntry()?.text;
         const hasFoodVibe = !!(foodVibeInput.value || "").trim();
-        generateCharacterButton.disabled = !(hasEmotion && capturedAuraSnapshot?.name && hasFoodVibe);
+        const ready = hasEmotion && capturedAuraSnapshot?.name && hasFoodVibe;
+        generateCharacterButton.disabled = GH_PAGES_MISSING_API || !ready;
       }
 
       function buildRubberHosePrompt(emotionEntry, auraName, foodVibe) {
@@ -860,6 +912,11 @@
         const foodVibe = (foodVibeInput.value || "").trim();
         if (!foodVibe) {
           generationStatus.textContent = "Please enter what kind of food you think you are.";
+          return;
+        }
+        if (GH_PAGES_MISSING_API) {
+          generationStatus.textContent =
+            "GitHub Pages has no image API. Deploy server.py and open this app with ?api=YOUR_HTTPS_API_URL (see red box).";
           return;
         }
 

@@ -126,6 +126,9 @@ Please use AuraBox **respectfully**: batch your experiments, cache results you n
 
 ## Troubleshooting
 
+- **502 / 404 on Character Lab (GitHub Pages):** Pages only serves static files — there is **no** `server.py` and no `/api/flux-generate` on `github.io`. The browser was calling the wrong URL, which often returns **502** or **404**. Deploy `server.py` to Railway, Render, Fly.io, etc., then share AuraBox as:  
+  `https://YOUR_USER.github.io/aurabox/index.html?api=https%3A%2F%2FYOUR_API_HOST%2Fapi%2Fflux-generate`  
+  (replace with your real HTTPS API URL). The app shows a red help box on Character Lab when this is missing.
 - **“Failed to fetch” / image errors (local):** Use `http://127.0.0.1:8000/index.html` with `server.py` running, or use `index.html?api=` pointing at your deployed API (HTTPS, CORS enabled).
 - **Camera not working:** Use HTTPS or localhost; grant camera permission in the browser.
 - **SSL errors with ZSky:** Prefer `pollinations` unless you have a confirmed ZSky URL and key.
