@@ -763,6 +763,9 @@
       const FLUX_ENDPOINT = window.AURABOX_FLUX_ENDPOINT || "/api/flux-generate";
       const GH_PAGES_MISSING_API = !!window.AURABOX_GH_PAGES_NO_API;
       const API_HOST_LOOKS_WRONG = !!window.AURABOX_API_WRONG_HOST;
+      let characterLabLocked = false;
+      let characterLabLockReason =
+        "Character Lab is locked. Add your own SKY API key and run server.py to unlock.";
       const ghPagesApiHintEl = document.getElementById("ghPagesApiHint");
       const ghPagesApiExampleEl = document.getElementById("ghPagesApiExample");
       if (GH_PAGES_MISSING_API && ghPagesApiExampleEl) {
@@ -779,6 +782,43 @@
       let capturedAuraSnapshot = null;
       const EMOTION_SUMMARY_PLACEHOLDER =
         "Emotion summary will appear here after you enter your feeling.";
+
+      function getCharacterLabStatusUrl() {
+        if (FLUX_ENDPOINT.startsWith("/")) {
+          return "/api/characterlab-status";
+        }
+        try {
+          const endpointUrl = new URL(FLUX_ENDPOINT);
+          const normalized = endpointUrl.pathname.replace(/\/+$/, "");
+          if (normalized === "/api/flux-generate") {
+            endpointUrl.pathname = "/api/characterlab-status";
+            endpointUrl.search = "";
+            return endpointUrl.toString();
+          }
+        } catch {
+          /* ignore */
+        }
+        return null;
+      }
+
+      async function loadCharacterLabStatus() {
+        const statusUrl = getCharacterLabStatusUrl();
+        if (!statusUrl) return;
+        try {
+          const response = await fetch(statusUrl, { method: "GET" });
+          if (!response.ok) return;
+          const data = await response.json();
+          if (typeof data.character_lab_enabled === "boolean" && !data.character_lab_enabled) {
+            characterLabLocked = true;
+            if (data.reason) {
+              characterLabLockReason = String(data.reason);
+            }
+          }
+          updateGenerateButtonState();
+        } catch {
+          /* ignore network issues on status endpoint */
+        }
+      }
 
       function resetEmotionWorkflow() {
         emotionInput.value = "";
@@ -873,6 +913,8 @@
         } else if (API_HOST_LOOKS_WRONG) {
           generationStatus.textContent =
             "?api= points at github.io — use your deployed server URL ending in /api/flux-generate instead.";
+        } else if (characterLabLocked) {
+          generationStatus.textContent = characterLabLockReason;
         }
       }
 
@@ -915,7 +957,8 @@
         const hasEmotion = !!readStoredEmotionEntry()?.text;
         const hasFoodVibe = !!(foodVibeInput.value || "").trim();
         const ready = hasEmotion && capturedAuraSnapshot?.name && hasFoodVibe;
-        generateCharacterButton.disabled = GH_PAGES_MISSING_API || API_HOST_LOOKS_WRONG || !ready;
+        generateCharacterButton.disabled =
+          GH_PAGES_MISSING_API || API_HOST_LOOKS_WRONG || characterLabLocked || !ready;
       }
 
       function buildRubberHosePrompt(emotionEntry, auraName, foodVibe) {
@@ -958,6 +1001,10 @@
         if (API_HOST_LOOKS_WRONG) {
           generationStatus.textContent =
             "The ?api= URL points at github.io — that only serves static files and cannot accept POST. Use your Python server URL ending in /api/flux-generate (e.g. Railway/Render), not your Pages link.";
+          return;
+        }
+        if (characterLabLocked) {
+          generationStatus.textContent = characterLabLockReason;
           return;
         }
 
@@ -1049,6 +1096,7 @@
       goBackToSelfieButton.addEventListener("click", showSelfiePage);
       generateCharacterButton.addEventListener("click", generateAuraCharacter);
       foodVibeInput.addEventListener("input", updateGenerateButtonState);
+      loadCharacterLabStatus();
 
       // Base beautify filter (always on: subtle "whitening" + smoothing)
       // Higher brightness + slightly reduced saturation gives a gentle skin‑brightening effect.

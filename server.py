@@ -4,10 +4,10 @@ AuraBox dev server: static files + POST /api/flux-generate for character images.
 
 Backends (env AURABOX_FLUX_BACKEND):
 
-  pollinations (default) — Free image API, no key, reliable HTTPS (image.pollinations.ai).
+  pollinations — Free image API, no key, reliable HTTPS (image.pollinations.ai).
       Optional: POLLINATIONS_MODEL (default flux).
 
-  zsky — ZSky REST API. Official site: no self-serve public API; api.zsky.ai often fails TLS.
+  zsky (default) — ZSky REST API. Official site: no self-serve public API; api.zsky.ai often fails TLS.
       Only if you have a working URL + key from ZSky: ZSKY_API_KEY, ZSKY_API_URL.
 
   local — Diffusers FLUX on GPU (requirements-flux.txt + HF_TOKEN).
@@ -325,7 +325,7 @@ def _call_local_flux(prompt: str, width: int, height: int) -> bytes:
 
 
 def _generate_image(prompt: str, width: int, height: int) -> tuple[bytes, str]:
-    backend = (os.environ.get("AURABOX_FLUX_BACKEND") or "pollinations").strip().lower()
+    backend = (os.environ.get("AURABOX_FLUX_BACKEND") or "zsky").strip().lower()
     if backend in ("pollinations", "pollination", "image_pollinations"):
         return _call_pollinations(prompt, width, height)
     if backend in ("zsky", "zsky_ai"):
@@ -387,7 +387,7 @@ class AuraBoxHandler(SimpleHTTPRequestHandler):
             return
 
         b64 = base64.b64encode(image_bytes).decode("ascii")
-        backend = (os.environ.get("AURABOX_FLUX_BACKEND") or "pollinations").strip().lower()
+        backend = (os.environ.get("AURABOX_FLUX_BACKEND") or "zsky").strip().lower()
         self._json_response(
             HTTPStatus.OK,
             {
@@ -407,12 +407,37 @@ class AuraBoxHandler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    def do_GET(self) -> None:
+        path = self.path.split("?")[0].rstrip("/") or "/"
+        if path == "/api/characterlab-status":
+            backend = (os.environ.get("AURABOX_FLUX_BACKEND") or "zsky").strip().lower()
+            has_zsky_key = bool((os.environ.get("ZSKY_API_KEY") or "").strip())
+            enabled = True
+            reason = ""
+            if backend in ("zsky", "zsky_ai") and not has_zsky_key:
+                enabled = False
+                reason = (
+                    "Character Lab is locked. Add your own SKY API key to unlock generation: "
+                    "export ZSKY_API_KEY=YOUR_KEY"
+                )
+            self._json_response(
+                HTTPStatus.OK,
+                {
+                    "character_lab_enabled": enabled,
+                    "backend": backend,
+                    "has_zsky_key": has_zsky_key,
+                    "reason": reason,
+                },
+            )
+            return
+        super().do_GET()
+
     def do_OPTIONS(self) -> None:
         path = self.path.split("?")[0].rstrip("/") or "/"
-        if path == "/api/flux-generate":
+        if path in ("/api/flux-generate", "/api/characterlab-status"):
             self.send_response(HTTPStatus.NO_CONTENT)
             self.send_header("Access-Control-Allow-Origin", "*")
-            self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
             self.send_header("Access-Control-Allow-Headers", "Content-Type")
             self.end_headers()
         else:
@@ -427,7 +452,7 @@ def main() -> None:
     addr = ("", port)
     httpd = ThreadingHTTPServer(addr, AuraBoxHandler)
     print(f"Serving {ROOT} at http://127.0.0.1:{port}/")
-    backend = (os.environ.get("AURABOX_FLUX_BACKEND") or "pollinations").strip().lower()
+    backend = (os.environ.get("AURABOX_FLUX_BACKEND") or "zsky").strip().lower()
     print(f"Image backend: AURABOX_FLUX_BACKEND={backend}")
     if backend in ("pollinations", "pollination", "image_pollinations"):
         print("  Pollinations (pollinations_api.py): no API key; optional POLLINATIONS_MODEL=flux")

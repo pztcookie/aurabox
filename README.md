@@ -5,7 +5,7 @@ AuraBox has 3 parts:
 - Selfie aura scanner + music
 - Character Lab (FLUX image generation)
 
-Character Lab needs an API. Emotion + Selfie + Music can be used without generation.
+Character Lab needs a SKY API key. Without a SKY API key, users can still use Emotion + Selfie + Music (stage 1 and stage 2).
 
 ---
 
@@ -42,12 +42,6 @@ export ZSKY_API_KEY="YOUR_SKY_API_KEY"
 ```
 
 `ZSKY_API_URL` is optional in this project. If you do not set it, AuraBox uses the default endpoint from `zsky_api.py`.
-
-If you use the default free backend instead:
-
-```bash
-export AURABOX_FLUX_BACKEND=pollinations
-```
 
 ### Point GitHub Pages to your API
 
@@ -87,17 +81,14 @@ pip install -r requirements.txt
 pip install -r requirements-zsky.txt
 ```
 
-3. Export backend/API env vars (choose one backend):
+3. Export SKY API env vars:
 
 ```bash
 # SKY API
 export AURABOX_FLUX_BACKEND=zsky
 export ZSKY_API_KEY="YOUR_KEY"
-# optional
+# optional (only if SKY gave you a custom endpoint)
 # export ZSKY_API_URL="YOUR_ENDPOINT"
-
-# OR default free backend
-# export AURABOX_FLUX_BACKEND=pollinations
 ```
 
 4. Start server:
@@ -116,14 +107,17 @@ Stop server with `Ctrl+C`.
 
 ---
 
-## No Character Lab mode (emotion + selfie + music only)
+## No SKY API key? (stage 1 + stage 2 only)
 
-If you do not want generation:
-- Open AuraBox URL normally.
-- Use page 1 + page 2 features.
-- Do not click Generate on page 3.
+If a user just clones/pulls this repo and runs it without setting `ZSKY_API_KEY`:
+- Stage 1 (emotion text) works
+- Stage 2 (selfie aura + music) works
+- Character Lab generation is locked with an on-screen message
 
-This mode needs no FLUX API key.
+To unlock Character Lab, the user must:
+1. Get a SKY API key from [https://www.zsky.ai/](https://www.zsky.ai/) (or [https://www.zsky.ai/api](https://www.zsky.ai/api))
+2. Export `ZSKY_API_KEY`
+3. Run `python3 server.py` again
 
 ---
 
