@@ -649,8 +649,8 @@
         Image generation uses third-party APIs. Free tiers have daily limits and may slow down or fail under heavy use — generate sparingly.
       </p>
       <p id="ghPagesApiHint" class="hidden" role="alert">
-        <strong>GitHub Pages cannot run image generation by itself.</strong> This site only hosts the HTML. Deploy
-        <code style="display: inline; padding: 2px 6px">server.py</code> somewhere (Railway, Render, Fly.io, …), then open AuraBox with your API in the URL, for example:
+        <strong>Running in direct Pollinations mode.</strong> Character Lab can generate directly from GitHub Pages (no local server). For better reliability/control, you can still set a custom
+        <code style="display: inline; padding: 2px 6px">?api=...</code> backend URL, for example:
         <code id="ghPagesApiExample"></code>
       </p>
       <button id="goBackToSelfieButton">Back to AuraBox Selfie</button>
@@ -762,6 +762,7 @@
       const EMOTION_LOG_NAMESPACE = "sentence_embeddings/current_emotion_entry";
       const FLUX_ENDPOINT = window.AURABOX_FLUX_ENDPOINT || "/api/flux-generate";
       const GH_PAGES_MISSING_API = !!window.AURABOX_GH_PAGES_NO_API;
+      const DIRECT_POLLINATIONS_MODE = GH_PAGES_MISSING_API;
       const API_HOST_LOOKS_WRONG = !!window.AURABOX_API_WRONG_HOST;
       let characterLabLocked = false;
       let characterLabLockReason =
@@ -784,6 +785,7 @@
         "Emotion summary will appear here after you enter your feeling.";
 
       function getCharacterLabStatusUrl() {
+        if (DIRECT_POLLINATIONS_MODE) return null;
         if (FLUX_ENDPOINT.startsWith("/")) {
           return "/api/characterlab-status";
         }
@@ -909,7 +911,7 @@
         }
         if (GH_PAGES_MISSING_API) {
           generationStatus.textContent =
-            "Deploy server.py and add ?api= to this page’s URL (see red box above).";
+            "Direct mode enabled: Character Lab generates via Pollinations from this page.";
         } else if (API_HOST_LOOKS_WRONG) {
           generationStatus.textContent =
             "?api= points at github.io — use your deployed server URL ending in /api/flux-generate instead.";
@@ -958,7 +960,15 @@
         const hasFoodVibe = !!(foodVibeInput.value || "").trim();
         const ready = hasEmotion && capturedAuraSnapshot?.name && hasFoodVibe;
         generateCharacterButton.disabled =
-          GH_PAGES_MISSING_API || API_HOST_LOOKS_WRONG || characterLabLocked || !ready;
+          API_HOST_LOOKS_WRONG || characterLabLocked || !ready;
+      }
+
+      function buildDirectPollinationsImageUrl(prompt, width, height) {
+        const encodedPrompt = encodeURIComponent(prompt);
+        const model = "flux";
+        const w = Math.max(64, Math.min(Number(width) || 1024, 2048));
+        const h = Math.max(64, Math.min(Number(height) || 1024, 2048));
+        return `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${w}&height=${h}&model=${encodeURIComponent(model)}&nologo=true&seed=${Date.now()}`;
       }
 
       function buildRubberHosePrompt(emotionEntry, auraName, foodVibe) {
@@ -993,11 +1003,6 @@
           generationStatus.textContent = "Please enter what kind of food you think you are.";
           return;
         }
-        if (GH_PAGES_MISSING_API) {
-          generationStatus.textContent =
-            "GitHub Pages has no image API. Deploy server.py and open this app with ?api=YOUR_HTTPS_API_URL (see red box).";
-          return;
-        }
         if (API_HOST_LOOKS_WRONG) {
           generationStatus.textContent =
             "The ?api= URL points at github.io — that only serves static files and cannot accept POST. Use your Python server URL ending in /api/flux-generate (e.g. Railway/Render), not your Pages link.";
@@ -1014,6 +1019,20 @@
         generateCharacterButton.disabled = true;
 
         try {
+          if (DIRECT_POLLINATIONS_MODE) {
+            const imageUrl = buildDirectPollinationsImageUrl(prompt, 1024, 1024);
+            await new Promise((resolve, reject) => {
+              generatedCharacterImage.onload = () => resolve();
+              generatedCharacterImage.onerror = () =>
+                reject(new Error("Direct Pollinations request failed. Please retry in a few seconds."));
+              generatedCharacterImage.src = imageUrl;
+            });
+            generatedCharacterImage.style.display = "block";
+            generationStatus.textContent = `Food monster ready — emotion + aura (${auraNameForCharacter}) + food (${foodVibe}).`;
+            clearStoredRecordsAfterGeneration();
+            return;
+          }
+
           const response = await fetch(FLUX_ENDPOINT, {
             method: "POST",
             headers: { "Content-Type": "application/json" },

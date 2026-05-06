@@ -51,33 +51,20 @@ Now Stage 1, Stage 2, and Stage 3 should all work (subject to Pollinations rate 
 
 ---
 
-## Shareable website link
+## Shareable website link (no terminal needed)
 
 Public site:
 
 [https://pztcookie.github.io/aurabox/](https://pztcookie.github.io/aurabox/)
 
 Users can always play Stage 1 and Stage 2 from this link.  
-For Stage 3, the app must reach a running backend endpoint.
+Stage 3 can now run directly on GitHub Pages via Pollinations (no local `server.py` needed).
 
-### Free temporary public link (Cloudflare Tunnel)
+### Optional: custom backend URL
 
-If you want others to use Stage 3 without deploying a paid server:
+If you still want to use your own backend, append `?api=...`:
 
-1. Run backend locally:
-   ```bash
-   cd /path/to/aurabox
-   export AURABOX_FLUX_BACKEND=pollinations
-   python3 server.py
-   ```
-2. In another terminal:
-   ```bash
-   cloudflared tunnel --url http://127.0.0.1:8000
-   ```
-3. Copy the `https://...trycloudflare.com` URL and share:
-   `https://pztcookie.github.io/aurabox/?api=https%3A%2F%2FYOUR_TUNNEL_HOST%2Fapi%2Fflux-generate`
-
-Keep both terminals running; the link stops when either process stops.
+`https://pztcookie.github.io/aurabox/?api=https%3A%2F%2FYOUR_BACKEND_HOST%2Fapi%2Fflux-generate`
 
 ---
 
